@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: #000;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  color: rgba(255, 255, 255, 0.85);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .surface {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 22px;
+  }
+  .dot-bg {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 9px 9px;
+  }
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-weight: 400;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+  }
+  .serif-it {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+  }
+  .num {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 200;
+    letter-spacing: -0.02em;
+  }
+  .hairline {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
