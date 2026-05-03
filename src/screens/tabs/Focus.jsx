@@ -28,27 +28,27 @@ export default function Focus({ goTo }) {
   return (
     <>
       <PageHeader title="Focus" goTo={goTo} />
-      <div className="flex flex-col items-center pb-3 pt-4">
-        <div className="relative h-[170px] w-[170px]">
-          <FocusRing pct={pct} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-            <div className="font-mono font-medium text-[34px] leading-none tracking-[-0.03em] text-white/85">
+      <div className="flex flex-col items-center pb-4 pt-2">
+        <div className="relative h-[230px] w-[230px]">
+          <FocusRing pct={pct} size={230} />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+            <div className="font-mono font-medium text-[48px] leading-none tracking-[-0.03em] text-white/85">
               {display}
             </div>
-            <div className="font-mono font-light text-[8px] tracking-[0.2em] uppercase text-white/20">
+            <div className="font-mono font-light text-[9px] tracking-[0.22em] uppercase text-white/30">
               {MODE_LABEL[focus.mode]}
             </div>
           </div>
         </div>
-        <div
+        <button
           onClick={toggleFocus}
-          className="my-2 flex h-[54px] w-[54px] cursor-pointer items-center justify-center rounded-full border-[1.5px] border-white/20 active:bg-white/[0.07]"
+          className="mt-5 flex h-[64px] w-[64px] cursor-pointer items-center justify-center rounded-full border-[1.5px] border-white/25 active:bg-white/[0.07]"
         >
-          {focus.running ? <PauseIcon /> : <PlayBig />}
-        </div>
+          {focus.running ? <PauseIcon size={20} /> : <PlayBig size={20} />}
+        </button>
       </div>
 
-      <div className="mb-2 text-center font-mono font-light text-[7.5px] tracking-[0.18em] uppercase text-white/[0.18]">
+      <div className="mb-3 mt-2 text-center font-mono font-light text-[8px] tracking-[0.22em] uppercase text-white/[0.4]">
         Select Mode
       </div>
 
@@ -63,14 +63,15 @@ export default function Focus({ goTo }) {
             <button
               key={m.id}
               onClick={() => setFocusMode(m.id)}
-              className={`flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-[10px] border px-2 py-2.5 transition ${
-                on ? 'border-white/25 bg-white/[0.04]' : 'border-white/[0.07]'
+              className={`flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-[12px] border px-2 py-3.5 transition ${
+                on ? 'border-white/35 bg-white/[0.06]' : 'border-white/[0.08]'
               } active:bg-white/[0.04]`}
+              style={{ minHeight: 64 }}
             >
-              <span className="font-mono font-light text-[7.5px] tracking-[0.12em] uppercase text-white/35">
+              <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-white/65">
                 {m.t}
               </span>
-              <span className="font-mono font-light text-[8.5px] tracking-[0.08em] text-white/[0.18]">{m.d}</span>
+              <span className="font-mono font-light text-[10px] tracking-[0.08em] text-white/[0.35]">{m.d}</span>
             </button>
           );
         })}

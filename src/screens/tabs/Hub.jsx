@@ -1,14 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useStore, scores } from '../../store.js';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useStore, scores, habitsCompletionToday } from '../../store.js';
 import { TripleRing } from '../../components/Ring.jsx';
 import { DropIcon, CheckIcon, FocusIcon, Chevron, PodcastIcon, PlayIcon } from '../../components/Icon.jsx';
-import { yearProgress, fmtTime } from '../../lib/dates.js';
+import { yearProgress } from '../../lib/dates.js';
 import { fetchPodcast, FALLBACK_PODCAST } from '../../lib/anthropic.js';
 import { todayKey } from '../../lib/dates.js';
+import { renderHabitIcon } from '../../lib/icons.jsx';
 
 export default function Hub({ goTo }) {
-  const state = useStore();
-  const tapWater = useStore((s) => s.tapWater);
+  const habits = useStore((s) => s.habits);
+  const todayProgress = useStore((s) => s.todayProgress);
+  const tasks = useStore((s) => s.tasks);
+  const focus = useStore((s) => s.focus);
+  const briefingState = useStore((s) => s.briefing);
+  const podcastState = useStore((s) => s.podcast);
+  const bumpProgressive = useStore((s) => s.bumpProgressive);
+  const toggleSimpleHabit = useStore((s) => s.toggleSimpleHabit);
   const setPodcast = useStore((s) => s.setPodcast);
   const [now, setNow] = useState(new Date());
 
@@ -18,28 +25,38 @@ export default function Hub({ goTo }) {
   }, []);
 
   useEffect(() => {
-    if (state.podcast?.dateKey === todayKey()) return;
+    if (podcastState?.dateKey === todayKey()) return;
     fetchPodcast().then(setPodcast).catch(() => setPodcast(FALLBACK_PODCAST));
   }, []); // eslint-disable-line
 
-  const s = scores(state);
+  const s = useMemo(() => scores({ habits, todayProgress, tasks }), [habits, todayProgress, tasks]);
   const yp = yearProgress(now);
-  const briefing = state.briefing?.items ?? [
+  const briefing = briefingState?.items ?? [
     { tag: 'AI', text: 'OpenAI ships o3 to all tiers — beats GPT-4o on reasoning' },
     { tag: 'MKT', text: 'JSE up 1.2% — Naspers leads, rand holds at R18.40' },
     { tag: 'World', text: 'Fed holds — Powell signals two cuts possible H2 2026' },
   ];
-  const podcast = state.podcast ?? FALLBACK_PODCAST;
+  const podcast = podcastState ?? FALLBACK_PODCAST;
 
   const dayNum = String(now.getDate()).padStart(2, '0');
   const dayName = now.toLocaleDateString('en-GB', { weekday: 'long' });
   const monthYear = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  const waterL = (state.habits.water * 0.5).toFixed(1).replace(/\.0$/, '') + 'L';
-  const habDone =
-    (state.habits.water >= 4 ? 1 : 0) + (state.habits.pushups >= 4 ? 1 : 0) + (state.habits.stretch ? 1 : 0);
 
-  const focusMins = Math.floor(state.focus.secondsLeft / 60);
-  const focusSecs = state.focus.secondsLeft % 60;
+  const completion = habitsCompletionToday({ habits, todayProgress });
+  // First progressive habit (typically Water) becomes the +bump quick action
+  const quickHabit = habits.find((h) => h.type === 'progressive');
+  const quickValue = quickHabit ? todayProgress[quickHabit.id] ?? 0 : 0;
+  const quickLabel = quickHabit
+    ? quickValue > 0
+      ? quickHabit.stepLabels?.[quickValue - 1] ?? `${quickValue}`
+      : '—'
+    : '—';
+  const quickTarget = quickHabit
+    ? `${quickHabit.stepLabels?.[quickHabit.steps - 1] ?? quickHabit.steps}`
+    : '';
+
+  const focusMins = Math.floor(focus.secondsLeft / 60);
+  const focusSecs = focus.secondsLeft % 60;
   const focusTime = `${String(focusMins).padStart(2, '0')}:${String(focusSecs).padStart(2, '0')}`;
 
   return (
@@ -93,16 +110,25 @@ export default function Hub({ goTo }) {
 
       {/* Quick actions */}
       <div className="mb-2.5 flex gap-1.5">
-        <QA onClick={() => tapWater(Math.min(4, state.habits.water + 1))}>
-          <DropIcon />
-          <div className="label !text-[7px] mt-1">Water</div>
-          <div className="font-mono text-[12px] leading-tight tracking-[-0.01em] text-white/55">{waterL}/2L</div>
-          <Btn>+250ml</Btn>
+        <QA
+          onClick={() => {
+            if (!quickHabit) return goTo('habits');
+            quickHabit.type === 'progressive' ? bumpProgressive(quickHabit.id) : toggleSimpleHabit(quickHabit.id);
+          }}
+        >
+          {quickHabit ? renderHabitIcon(quickHabit.icon, 13, 'rgba(255,255,255,0.5)') : <DropIcon />}
+          <div className="label !text-[7px] mt-1">{quickHabit?.name ?? 'Habit'}</div>
+          <div className="font-mono text-[12px] leading-tight tracking-[-0.01em] text-white/55">
+            {quickLabel}{quickTarget ? `/${quickTarget}` : ''}
+          </div>
+          <Btn>+1 step</Btn>
         </QA>
         <QA onClick={() => goTo('habits')}>
           <CheckIcon />
           <div className="label !text-[7px] mt-1">Habits</div>
-          <div className="font-mono text-[12px] leading-tight tracking-[-0.01em] text-white/55">{habDone}/3</div>
+          <div className="font-mono text-[12px] leading-tight tracking-[-0.01em] text-white/55">
+            {completion.done}/{completion.total}
+          </div>
           <Btn>Log</Btn>
         </QA>
         <QA onClick={() => goTo('focus')}>

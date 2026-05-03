@@ -1,4 +1,4 @@
-const CACHE = 'cam-os-v2';
+const CACHE = 'cam-os-v3';
 const ASSETS = ['/', '/lock', '/home', '/app', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (e) => {

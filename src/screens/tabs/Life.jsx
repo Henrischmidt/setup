@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useStore, scores } from '../../store.js';
 import { SingleRing } from '../../components/Ring.jsx';
 import { SleepIcon, StepsIcon, PhoneOutline, MindIcon, HealthIcon } from '../../components/Icon.jsx';
@@ -20,20 +20,22 @@ const StatRow = ({ Icon, label, value, pct }) => (
 );
 
 export default function Life({ goTo }) {
-  const state = useStore();
-  const s = scores(state);
+  const habits = useStore((s) => s.habits);
+  const todayProgress = useStore((s) => s.todayProgress);
+  const tasks = useStore((s) => s.tasks);
+  const s = useMemo(() => scores({ habits, todayProgress, tasks }), [habits, todayProgress, tasks]);
 
   return (
     <>
       <PageHeader title="Life" goTo={goTo} />
-      <div className="flex flex-col items-center pb-3 pt-2">
-        <div className="relative h-[140px] w-[140px]">
-          <SingleRing pct={s.life} />
+      <div className="flex flex-col items-center pb-3 pt-1">
+        <div className="relative h-[200px] w-[200px]">
+          <SingleRing pct={s.life} size={200} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-            <div className="font-mono font-medium text-[38px] leading-none tracking-[-0.04em] text-white/85">
+            <div className="font-mono font-medium text-[50px] leading-none tracking-[-0.04em] text-white/85">
               {s.life}%
             </div>
-            <div className="font-mono font-light text-[8px] tracking-[0.2em] uppercase text-white/20">Life</div>
+            <div className="font-mono font-light text-[8px] tracking-[0.2em] uppercase text-white/30">Life</div>
           </div>
         </div>
       </div>

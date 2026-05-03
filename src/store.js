@@ -9,58 +9,155 @@ const defaultTasks = [
   { id: 't4', text: 'Sync with N8N automation logs', done: false },
 ];
 
-const blankHabits = () => ({
-  water: 0, // 0..4 segments (0.5L each => 2L total)
-  pushups: 0, // 0..4 segments (5,10,15,20)
-  stretch: false,
-});
+export const DEFAULT_HABITS = [
+  {
+    id: 'water',
+    name: 'Water',
+    type: 'progressive',
+    steps: 4,
+    stepLabels: ['0.5L', '1L', '1.5L', '2L'],
+    targetStep: 4,
+    icon: 'drop',
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'pushups',
+    name: 'Push-ups',
+    type: 'progressive',
+    steps: 4,
+    stepLabels: ['5', '10', '15', '20'],
+    targetStep: 4,
+    icon: 'dumbbell',
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'stretch',
+    name: 'Stretch',
+    type: 'simple',
+    icon: 'stretch',
+    createdAt: '2024-01-01',
+  },
+];
+
+const blankStreak = () => ({ current: 0, longest: 0, totalCompletions: 0 });
+
+const isMet = (habit, value) => {
+  if (!habit) return false;
+  if (habit.type === 'simple') return value === 1;
+  return (value ?? 0) >= (habit.targetStep ?? habit.steps ?? 1);
+};
+
+const newId = () => `h_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 
 export const useStore = create(
   persist(
     (set, get) => ({
       dayKey: todayKey(),
-      habits: blankHabits(),
-      // history: { 'YYYY-MM-DD': { water, pushups, stretch } } — snapshotted on rollover
-      habitHistory: {},
-      streak: 0,
+      habits: DEFAULT_HABITS,
+      todayProgress: {}, // { [habitId]: number }
+      dailyLogs: {}, // { 'YYYY-MM-DD': { [habitId]: stepReached } }
+      streaks: {}, // { [habitId]: { current, longest, totalCompletions } }
+      overallStreak: 0,
       tasks: defaultTasks,
-      briefing: null, // { dateKey, items: [{tag,text}] }
-      podcast: null, // { dateKey, show, episode, duration, description }
+      briefing: null,
+      podcast: null,
       focus: { mode: 'deep', secondsLeft: 25 * 60, running: false },
 
-      // Apply midnight rollover; called on app load + every minute.
+      // ── ROLLOVER ────────────────────────────────────────────
       maybeRollover: () => {
         const cur = todayKey();
         const prev = get().dayKey;
         if (cur === prev) return;
-        const h = get().habits;
-        const allDone = h.water >= 4 && h.pushups >= 4 && h.stretch;
-        const wasYesterday = prev === yesterdayKey();
-        const newStreak = wasYesterday && allDone ? get().streak + 1 : allDone ? 1 : 0;
-        const history = { ...get().habitHistory, [prev]: { ...h } };
+
+        const { habits, todayProgress, dailyLogs, streaks, overallStreak } = get();
+        const yKey = yesterdayKey();
+        const wasYesterday = prev === yKey;
+
+        const newLogs = { ...dailyLogs, [prev]: { ...todayProgress } };
+        const newStreaks = { ...streaks };
+        let allMet = habits.length > 0;
+
+        habits.forEach((h) => {
+          const v = todayProgress[h.id] ?? 0;
+          const met = isMet(h, v);
+          const prevS = newStreaks[h.id] ?? blankStreak();
+          if (met) {
+            const next = wasYesterday ? prevS.current + 1 : 1;
+            newStreaks[h.id] = {
+              current: next,
+              longest: Math.max(prevS.longest, next),
+              totalCompletions: prevS.totalCompletions + 1,
+            };
+          } else {
+            newStreaks[h.id] = { ...prevS, current: 0 };
+            allMet = false;
+          }
+        });
+
+        const nextOverall = allMet ? (wasYesterday ? overallStreak + 1 : 1) : 0;
+
         set({
           dayKey: cur,
-          habits: blankHabits(),
-          habitHistory: history,
-          streak: newStreak,
+          todayProgress: {},
+          dailyLogs: newLogs,
+          streaks: newStreaks,
+          overallStreak: nextOverall,
           tasks: get().tasks.map((t) => ({ ...t, done: false })),
         });
       },
 
-      // Habit actions
-      tapWater: (n) => set((s) => ({ habits: { ...s.habits, water: s.habits.water === n ? n - 1 : n } })),
-      tapPushups: (n) => set((s) => ({ habits: { ...s.habits, pushups: s.habits.pushups === n ? n - 1 : n } })),
-      toggleStretch: () => set((s) => ({ habits: { ...s.habits, stretch: !s.habits.stretch } })),
+      // ── HABIT ACTIONS ────────────────────────────────────────
+      tapHabitStep: (id, n) =>
+        set((s) => {
+          const cur = s.todayProgress[id] ?? 0;
+          const next = cur === n ? n - 1 : n;
+          return { todayProgress: { ...s.todayProgress, [id]: next } };
+        }),
+      toggleSimpleHabit: (id) =>
+        set((s) => {
+          const cur = s.todayProgress[id] ?? 0;
+          return { todayProgress: { ...s.todayProgress, [id]: cur === 1 ? 0 : 1 } };
+        }),
+      bumpProgressive: (id) =>
+        set((s) => {
+          const habit = s.habits.find((h) => h.id === id);
+          if (!habit || habit.type !== 'progressive') return s;
+          const cur = s.todayProgress[id] ?? 0;
+          const next = Math.min(habit.steps, cur + 1);
+          return { todayProgress: { ...s.todayProgress, [id]: next } };
+        }),
 
-      // Tasks
+      // ── HABIT MGMT ───────────────────────────────────────────
+      addHabit: (h) =>
+        set((s) => ({
+          habits: [...s.habits, { id: newId(), createdAt: new Date().toISOString(), ...h }],
+        })),
+      updateHabit: (id, patch) =>
+        set((s) => ({ habits: s.habits.map((h) => (h.id === id ? { ...h, ...patch } : h)) })),
+      deleteHabit: (id) =>
+        set((s) => {
+          const nextProgress = { ...s.todayProgress };
+          delete nextProgress[id];
+          const nextStreaks = { ...s.streaks };
+          delete nextStreaks[id];
+          return {
+            habits: s.habits.filter((h) => h.id !== id),
+            todayProgress: nextProgress,
+            streaks: nextStreaks,
+          };
+        }),
+      reorderHabits: (ids) =>
+        set((s) => ({ habits: ids.map((i) => s.habits.find((h) => h.id === i)).filter(Boolean) })),
+
+      // ── TASKS ───────────────────────────────────────────────
       toggleTask: (id) =>
         set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) })),
 
-      // Cache setters
+      // ── BRIEFING / PODCAST ──────────────────────────────────
       setBriefing: (items) => set({ briefing: { dateKey: todayKey(), items } }),
       setPodcast: (p) => set({ podcast: { dateKey: todayKey(), ...p } }),
 
-      // Focus
+      // ── FOCUS ───────────────────────────────────────────────
       setFocusMode: (mode) => {
         const map = { deep: 25 * 60, short: 5 * 60, long: 50 * 60 };
         set({ focus: { mode, secondsLeft: map[mode], running: false } });
@@ -79,27 +176,61 @@ export const useStore = create(
     }),
     {
       name: 'cam-os-state',
-      version: 2,
+      version: 3,
       migrate: (persisted, fromVersion) => {
         if (!persisted) return persisted;
-        if (fromVersion < 2) {
-          return { ...persisted, habitHistory: persisted.habitHistory ?? {} };
+        let s = persisted;
+        // v1 -> v2: add habitHistory (we drop this in v3 anyway)
+        // v2 -> v3: convert legacy { water, pushups, stretch } shape into dynamic model
+        if (fromVersion < 3) {
+          const legacy = s.habits ?? {};
+          const legacyHistory = s.habitHistory ?? {};
+          const dailyLogs = {};
+          Object.keys(legacyHistory).forEach((dk) => {
+            const h = legacyHistory[dk] ?? {};
+            dailyLogs[dk] = {
+              water: h.water ?? 0,
+              pushups: h.pushups ?? 0,
+              stretch: h.stretch ? 1 : 0,
+            };
+          });
+          s = {
+            ...s,
+            habits: DEFAULT_HABITS,
+            todayProgress: {
+              water: legacy.water ?? 0,
+              pushups: legacy.pushups ?? 0,
+              stretch: legacy.stretch ? 1 : 0,
+            },
+            dailyLogs,
+            streaks: {},
+            overallStreak: s.streak ?? 0,
+          };
+          delete s.habitHistory;
+          delete s.streak;
         }
-        return persisted;
+        return s;
       },
     }
   )
 );
 
-// Derived scores (pure helpers, not in store)
+// ── SELECTORS / DERIVED ────────────────────────────────────
+export const habitMet = (habit, value) => isMet(habit, value);
+
+export const habitsCompletionToday = (state) => {
+  const list = state.habits ?? [];
+  if (!list.length) return { done: 0, total: 0, pct: 0 };
+  const done = list.reduce((acc, h) => acc + (isMet(h, state.todayProgress[h.id]) ? 1 : 0), 0);
+  return { done, total: list.length, pct: Math.round((done / list.length) * 100) };
+};
+
 export const scores = (state) => {
-  // Life: hardcoded composite (sleep/steps/screen/mindfulness baseline) since no Apple Health yet
   const life = 76;
-  const h = state.habits;
-  const habitsPct = Math.round(((h.water / 4) * 0.4 + (h.pushups / 4) * 0.4 + (h.stretch ? 0.2 : 0)) * 100);
+  const habits = habitsCompletionToday(state).pct;
   const total = state.tasks.length || 1;
   const done = state.tasks.filter((t) => t.done).length;
   const work = Math.round((done / total) * 100);
-  const today = Math.round((life + habitsPct + work) / 3);
-  return { life, habits: habitsPct, work, today };
+  const today = Math.round((life + habits + work) / 3);
+  return { life, habits, work, today };
 };

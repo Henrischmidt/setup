@@ -1,211 +1,157 @@
-import React from 'react';
-import { useStore, scores } from '../../store.js';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useStore, scores, habitsCompletionToday, habitMet } from '../../store.js';
 import { SingleRing } from '../../components/Ring.jsx';
-import { DropIcon, PushupIcon, StretchIcon, FlameIcon } from '../../components/Icon.jsx';
+import HabitRow from '../../components/HabitRow.jsx';
+import DotGrid from '../../components/DotGrid.jsx';
 import PageHeader from './PageHeader.jsx';
-import { weekDates, todayKey, habitsDoneCount } from '../../lib/dates.js';
-
-const DAY_LBL = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-const WeekStrip = ({ history, todayHabits }) => {
-  const days = weekDates();
-  const today = todayKey();
-  return (
-    <div className="my-2.5">
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="font-mono font-light text-[7.5px] tracking-[0.18em] uppercase text-white/[0.22]">
-          This week
-        </span>
-        <span className="font-mono font-light text-[7.5px] tracking-[0.12em] uppercase text-white/[0.18]">
-          Mon → Sun
-        </span>
-      </div>
-      <div className="flex gap-1.5">
-        {days.map((d, i) => {
-          const k = d.toISOString().slice(0, 10);
-          const isToday = k === today;
-          const isFuture = d.getTime() > new Date().setHours(23, 59, 59, 999);
-          const h = isToday ? todayHabits : history[k];
-          const done = h ? habitsDoneCount(h) : 0;
-          const fillPct = (done / 3) * 100;
-          const allDone = done === 3;
-          return (
-            <div
-              key={k}
-              className={`flex flex-1 flex-col items-center gap-1 rounded-[10px] border px-1 py-2 ${
-                isToday ? 'border-white/25 bg-white/[0.04]' : 'border-white/[0.06] bg-white/[0.018]'
-              } ${isFuture ? 'opacity-30' : ''}`}
-            >
-              <span className="font-mono font-light text-[7px] tracking-[0.1em] uppercase text-white/[0.35]">
-                {DAY_LBL[i]}
-              </span>
-              <span className="font-mono font-light text-[10px] tracking-[-0.02em] text-white/55">
-                {String(d.getDate()).padStart(2, '0')}
-              </span>
-              <div className="relative mt-0.5 h-[18px] w-[18px]">
-                <svg width="18" height="18" viewBox="0 0 18 18" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="9" cy="9" r="7" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2" />
-                  <circle
-                    cx="9" cy="9" r="7" fill="none"
-                    stroke={allDone ? '#fff' : 'rgba(255,255,255,0.55)'}
-                    strokeWidth="2" strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 7}
-                    strokeDashoffset={(2 * Math.PI * 7) * (1 - fillPct / 100)}
-                    style={{
-                      transition: 'stroke-dashoffset 0.4s ease',
-                      filter: allDone ? 'drop-shadow(0 0 3px rgba(255,255,255,0.35))' : 'none',
-                    }}
-                  />
-                </svg>
-                {h && !isFuture && (
-                  <span className="absolute inset-0 flex items-center justify-center font-mono font-light text-[7px] text-white/55">
-                    {done}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const Seg = ({ on, full, onClick }) => (
-  <div onClick={onClick} className="relative h-[2px] flex-1 cursor-pointer rounded-[1px]" style={{
-    background: full ? '#fff' : on ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.07)',
-    boxShadow: full ? '0 0 4px rgba(255,255,255,0.3)' : 'none',
-  }}>
-    <div className="absolute -inset-y-2 inset-x-0" />
-  </div>
-);
-
-const HabRow = ({ Icon, label, value, segs, count, max, onSegClick }) => (
-  <div className="flex items-center gap-2.5 border-b border-white/[0.04] py-2 last:border-b-0">
-    <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]">
-      <Icon />
-    </div>
-    <div className="flex-1">
-      <div className="mb-1 font-sans font-thin text-[11px] text-white/40">{label}</div>
-      <div className="flex gap-[3px]">
-        {segs.map((s, i) => (
-          <Seg key={i} on={s.on} full={s.full} onClick={() => onSegClick(i + 1)} />
-        ))}
-      </div>
-    </div>
-    <div className="min-w-[34px] text-right font-mono font-light text-[10px] text-white/[0.22]">{value}</div>
-  </div>
-);
-
-const wL = ['0L', '0.5L', '1L', '1.5L', '2L'];
-const pL = ['0', '5', '10', '15', '20'];
+import { renderHabitIcon } from '../../lib/icons.jsx';
 
 export default function Habits({ goTo }) {
-  const state = useStore();
-  const tapWater = useStore((s) => s.tapWater);
-  const tapPushups = useStore((s) => s.tapPushups);
-  const toggleStretch = useStore((s) => s.toggleStretch);
-  const s = scores(state);
+  const nav = useNavigate();
+  const habits = useStore((s) => s.habits);
+  const todayProgress = useStore((s) => s.todayProgress);
+  const dailyLogs = useStore((s) => s.dailyLogs);
+  const streaks = useStore((s) => s.streaks);
+  const overallStreak = useStore((s) => s.overallStreak);
+  const tapHabitStep = useStore((s) => s.tapHabitStep);
+  const toggleSimpleHabit = useStore((s) => s.toggleSimpleHabit);
+  const tasks = useStore((s) => s.tasks);
 
-  const waterSegs = [1, 2, 3, 4].map((n) => ({
-    on: n <= state.habits.water,
-    full: state.habits.water === 4 && n === 4,
-  }));
-  const pushSegs = [1, 2, 3, 4].map((n) => ({
-    on: n <= state.habits.pushups,
-    full: state.habits.pushups === 4 && n === 4,
-  }));
+  const habitsPct = useMemo(() => habitsCompletionToday({ habits, todayProgress }).pct, [habits, todayProgress]);
+  const completion = habitsCompletionToday({ habits, todayProgress });
+  const allDone = completion.done === completion.total && completion.total > 0;
 
-  const done =
-    (state.habits.water >= 4 ? 1 : 0) + (state.habits.pushups >= 4 ? 1 : 0) + (state.habits.stretch ? 1 : 0);
-  const allDone = done === 3;
-  const insight = allDone
-    ? 'All 3 habits done. Streak extended.'
-    : `${done} of 3 habits done. ${
-        done === 0 ? 'Start with water — easiest win.' : 'Keep going to extend your streak.'
-      }`;
+  const stats = useMemo(() => {
+    const t = scores({ habits, todayProgress, tasks });
+    return t;
+  }, [habits, todayProgress, tasks]);
+
+  const last30 = useMemo(() => {
+    const out = [];
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(t);
+      d.setDate(t.getDate() - i);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      out.push(`${y}-${m}-${day}`);
+    }
+    return out;
+  }, []);
+
+  const completionRate = useMemo(() => {
+    if (!habits.length) return 0;
+    let metCount = 0;
+    last30.forEach((k) => {
+      const src = k === last30[last30.length - 1] ? todayProgress : dailyLogs[k];
+      if (!src) return;
+      const allMet = habits.every((h) => habitMet(h, src[h.id]));
+      if (allMet) metCount++;
+    });
+    return Math.round((metCount / 30) * 100);
+  }, [habits, dailyLogs, todayProgress, last30]);
+
+  const bestStreak = useMemo(
+    () => Math.max(overallStreak, ...habits.map((h) => streaks[h.id]?.longest ?? 0), 0),
+    [overallStreak, streaks, habits]
+  );
 
   return (
     <>
-      <PageHeader title="Habits" goTo={goTo} />
-      <div className="flex flex-col items-center pb-3 pt-2">
-        <div className="relative h-[140px] w-[140px]">
-          <SingleRing pct={s.habits} stroke="rgba(255,255,255,0.6)" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-            <div className="font-mono font-medium text-[38px] leading-none tracking-[-0.04em] text-white/85">
-              {s.habits}%
-            </div>
-            <div className="font-mono font-light text-[8px] tracking-[0.2em] uppercase text-white/20">Habits</div>
-          </div>
-        </div>
-      </div>
-
-      <HabRow
-        Icon={DropIcon}
-        label="Water"
-        value={wL[state.habits.water]}
-        segs={waterSegs}
-        onSegClick={(n) => tapWater(n)}
-      />
-      <HabRow
-        Icon={PushupIcon}
-        label="Push-ups"
-        value={pL[state.habits.pushups]}
-        segs={pushSegs}
-        onSegClick={(n) => tapPushups(n)}
-      />
-
-      {/* Stretch */}
-      <div className="flex cursor-pointer items-center gap-2.5 border-b border-white/[0.04] py-2" onClick={toggleStretch}>
-        <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]">
-          <StretchIcon />
-        </div>
-        <div className="flex-1">
-          <div className="mb-1 font-sans font-thin text-[11px] text-white/40">Stretch</div>
-          <div className="flex gap-[3px]">
-            <div
-              className="h-[2px] flex-1 rounded-[1px]"
-              style={{
-                background: state.habits.stretch ? '#fff' : 'rgba(255,255,255,0.07)',
-                boxShadow: state.habits.stretch ? '0 0 4px rgba(255,255,255,0.3)' : 'none',
-              }}
-            />
-          </div>
-        </div>
-        <div
-          className={`flex h-[13px] w-[13px] shrink-0 items-center justify-center rounded-full border ${
-            state.habits.stretch ? 'border-white/45 bg-white/[0.08]' : 'border-white/[0.12]'
-          }`}
-        >
-          {state.habits.stretch && (
-            <svg width="7" height="7" viewBox="0 0 7 7" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="1,3.5 3,5.5 6,1.5" />
+      <PageHeader
+        title="Habits"
+        goTo={goTo}
+        right={
+          <button
+            onClick={() => nav('/app/manage')}
+            className="flex h-[28px] w-[28px] items-center justify-center rounded-full border border-white/[0.07] active:bg-white/[0.04]"
+            aria-label="Manage habits"
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2" strokeLinecap="round">
+              <circle cx="6.5" cy="6.5" r="1.6" />
+              <path d="M6.5 1.5v1.6M6.5 9.9v1.6M11.5 6.5h-1.6M3.1 6.5H1.5M10 3l-1.1 1.1M4.1 8.9 3 10M10 10 8.9 8.9M4.1 4.1 3 3" />
             </svg>
-          )}
+          </button>
+        }
+      />
+
+      <div className="flex flex-col items-center pb-2 pt-1">
+        <div className="relative h-[180px] w-[180px]">
+          <SingleRing pct={stats.habits} stroke="rgba(255,255,255,0.6)" size={180} />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+            <div className="font-mono font-medium text-[44px] leading-none tracking-[-0.04em] text-white/85">
+              {stats.habits}%
+            </div>
+            <div className="font-mono font-light text-[8px] tracking-[0.2em] uppercase text-white/30">Habits</div>
+          </div>
         </div>
       </div>
 
-      {/* Streak */}
-      <div className="flex items-center gap-2.5 border-b border-white/[0.04] py-2">
-        <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]">
-          <FlameIcon />
+      {habits.map((h) => (
+        <HabitRow
+          key={h.id}
+          habit={h}
+          value={todayProgress[h.id] ?? 0}
+          met={habitMet(h, todayProgress[h.id])}
+          onTapStep={(n) => tapHabitStep(h.id, n)}
+          onToggleSimple={() => toggleSimpleHabit(h.id)}
+          onOpen={() => nav(`/app/habit/${h.id}`)}
+        />
+      ))}
+
+      {/* Silent streak (overall) — non-deletable, derived */}
+      <div className="flex items-center gap-2.5 border-b border-white/[0.04] py-1.5">
+        <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]">
+          {renderHabitIcon('flame', 14, 'rgba(255,255,255,0.32)')}
         </div>
-        <div className="flex-1">
-          <div className="mb-1 font-sans font-thin text-[11px] text-white/[0.18]">—</div>
-        </div>
+        <div className="flex-1 font-sans font-thin text-[12px] text-white/[0.22]">—</div>
         <div
-          className="min-w-[34px] text-right serif-it text-[22px]"
-          style={{ color: allDone ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.2)' }}
+          className="min-w-[34px] text-right font-mono font-medium text-[20px] tracking-[-0.02em]"
+          style={{
+            color: allDone ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.22)',
+            textShadow: allDone ? '0 0 8px rgba(255,255,255,0.35)' : 'none',
+          }}
         >
-          {state.streak}
+          {overallStreak}
         </div>
       </div>
 
-      <div className="my-2 rounded-[10px] border border-white/[0.04] bg-white/[0.02] px-3 py-2.5">
-        <div className="font-sans font-thin text-[10px] leading-[1.55] text-white/[0.22]">{insight}</div>
+      <div className="my-3 rounded-[10px] border border-white/[0.04] bg-white/[0.02] px-3 py-2.5">
+        <div className="font-sans font-thin text-[10px] leading-[1.55] text-white/[0.4]">
+          {allDone
+            ? 'All habits done today. Streak extended.'
+            : `${completion.done} of ${completion.total} habits done. ${
+                completion.done === 0 ? 'Start with the easiest one.' : 'Keep going to extend your streak.'
+              }`}
+        </div>
       </div>
 
-      <WeekStrip history={state.habitHistory ?? {}} todayHabits={state.habits} />
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono font-light text-[7.5px] tracking-[0.18em] uppercase text-white/[0.4]">
+          Last 30 days
+        </span>
+        <span className="font-mono font-light text-[7.5px] tracking-[0.12em] uppercase text-white/[0.18]">
+          Tap to inspect
+        </span>
+      </div>
+
+      <DotGrid habits={habits} dailyLogs={dailyLogs} todayProgress={todayProgress} days={30} />
+
+      <div className="my-3 grid grid-cols-3 gap-1.5">
+        <MicroStat label="Current" value={`${overallStreak} ${overallStreak === 1 ? 'day' : 'days'}`} />
+        <MicroStat label="Best" value={`${bestStreak} ${bestStreak === 1 ? 'day' : 'days'}`} />
+        <MicroStat label="Rate · 30d" value={`${completionRate}%`} />
+      </div>
     </>
   );
 }
+
+const MicroStat = ({ label, value }) => (
+  <div className="rounded-[10px] border border-white/[0.06] bg-white/[0.02] px-2.5 py-2">
+    <div className="font-mono font-light text-[7px] tracking-[0.14em] uppercase text-white/[0.3]">{label}</div>
+    <div className="mt-1 font-mono font-medium text-[14px] tracking-[-0.02em] text-white/75">{value}</div>
+  </div>
+);
