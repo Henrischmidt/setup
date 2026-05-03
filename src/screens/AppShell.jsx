@@ -22,8 +22,8 @@ export default function AppShell() {
   const View = active.View;
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-bg flex flex-col pt-[env(safe-area-inset-top,2.75rem)]">
-      <div className="flex-1 overflow-y-auto px-[18px] pb-2 pt-1.5">
+    <div className="relative w-screen overflow-hidden bg-bg flex flex-col pt-[env(safe-area-inset-top,2.75rem)]" style={{ height: '100dvh' }}>
+      <div className="flex-1 overflow-y-auto overscroll-contain px-[18px] pb-6 pt-1.5">
         <View goTo={(id) => nav(`/app/${id}`)} />
       </div>
       <nav className="flex justify-around border-t border-white/[0.04] bg-bg px-1.5 pb-[max(env(safe-area-inset-bottom),12px)] pt-2">

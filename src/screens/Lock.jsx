@@ -55,7 +55,8 @@ export default function Lock() {
 
   return (
     <div
-      className="relative h-screen w-screen overflow-hidden flex flex-col px-5 pb-6 pt-[env(safe-area-inset-top,3rem)]"
+      className="relative w-screen overflow-hidden flex flex-col px-5 pb-[max(env(safe-area-inset-bottom),1.5rem)] pt-[max(env(safe-area-inset-top),3rem)]"
+      style={{ height: '100dvh' }}
       onTouchStart={onStart}
       onTouchEnd={onEnd}
       onClick={() => nav('/home')}

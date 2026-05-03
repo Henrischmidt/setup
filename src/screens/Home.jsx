@@ -49,7 +49,10 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative min-h-screen w-screen overflow-hidden flex flex-col bg-bg pt-[env(safe-area-inset-top,2.75rem)]">
+    <div
+      className="relative w-screen overflow-hidden flex flex-col bg-bg pt-[max(env(safe-area-inset-top),2.75rem)]"
+      style={{ minHeight: '100dvh' }}
+    >
       {/* wallpaper */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -bottom-16 -right-20 h-[500px] w-[500px] rounded-full border border-white/[0.025]" />
