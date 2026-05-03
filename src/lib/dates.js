@@ -39,3 +39,19 @@ export const fmtTime = (d = new Date()) => {
 
 export const fmtDateLong = (d = new Date()) =>
   d.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+// Return the 7 dates of the week containing `d`, Monday → Sunday.
+export const weekDates = (d = new Date()) => {
+  const start = new Date(d);
+  start.setHours(0, 0, 0, 0);
+  const dow = (start.getDay() + 6) % 7; // Mon=0 .. Sun=6
+  start.setDate(start.getDate() - dow);
+  return Array.from({ length: 7 }, (_, i) => {
+    const x = new Date(start);
+    x.setDate(start.getDate() + i);
+    return x;
+  });
+};
+
+export const habitsDoneCount = (h) =>
+  (h?.water >= 4 ? 1 : 0) + (h?.pushups >= 4 ? 1 : 0) + (h?.stretch ? 1 : 0);

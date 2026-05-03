@@ -20,6 +20,8 @@ export const useStore = create(
     (set, get) => ({
       dayKey: todayKey(),
       habits: blankHabits(),
+      // history: { 'YYYY-MM-DD': { water, pushups, stretch } } — snapshotted on rollover
+      habitHistory: {},
       streak: 0,
       tasks: defaultTasks,
       briefing: null, // { dateKey, items: [{tag,text}] }
@@ -31,14 +33,15 @@ export const useStore = create(
         const cur = todayKey();
         const prev = get().dayKey;
         if (cur === prev) return;
-        // determine streak for the day that just ended
         const h = get().habits;
         const allDone = h.water >= 4 && h.pushups >= 4 && h.stretch;
         const wasYesterday = prev === yesterdayKey();
         const newStreak = wasYesterday && allDone ? get().streak + 1 : allDone ? 1 : 0;
+        const history = { ...get().habitHistory, [prev]: { ...h } };
         set({
           dayKey: cur,
           habits: blankHabits(),
+          habitHistory: history,
           streak: newStreak,
           tasks: get().tasks.map((t) => ({ ...t, done: false })),
         });
@@ -76,7 +79,14 @@ export const useStore = create(
     }),
     {
       name: 'cam-os-state',
-      version: 1,
+      version: 2,
+      migrate: (persisted, fromVersion) => {
+        if (!persisted) return persisted;
+        if (fromVersion < 2) {
+          return { ...persisted, habitHistory: persisted.habitHistory ?? {} };
+        }
+        return persisted;
+      },
     }
   )
 );

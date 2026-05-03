@@ -22,11 +22,20 @@ export default function AppShell() {
   const View = active.View;
 
   return (
-    <div className="relative w-screen overflow-hidden bg-bg flex flex-col pt-[env(safe-area-inset-top,2.75rem)]" style={{ height: '100dvh' }}>
-      <div className="flex-1 overflow-y-auto overscroll-contain px-[18px] pb-6 pt-1.5">
+    <div
+      className="relative w-screen overflow-hidden bg-bg pt-[max(env(safe-area-inset-top),2.75rem)]"
+      style={{ height: '100dvh' }}
+    >
+      <div
+        className="h-full overflow-y-auto overscroll-contain px-[18px] pt-1.5"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)' }}
+      >
         <View goTo={(id) => nav(`/app/${id}`)} />
       </div>
-      <nav className="flex justify-around border-t border-white/[0.04] bg-bg px-1.5 pb-[max(env(safe-area-inset-bottom),12px)] pt-2">
+      <nav
+        className="fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-white/[0.06] bg-bg/95 px-1.5 pt-2 backdrop-blur"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+      >
         {TABS.map((t) => {
           const on = t.id === active.id;
           return (
@@ -34,13 +43,13 @@ export default function AppShell() {
               key={t.id}
               onClick={() => nav(`/app/${t.id}`)}
               className={`min-w-[44px] flex flex-col items-center gap-1 rounded-xl px-2.5 py-1 transition active:bg-white/[0.04] ${
-                on ? 'text-white/65' : 'text-white/[0.18]'
+                on ? 'text-white/85' : 'text-white/40'
               }`}
             >
               <t.Icon />
               <span
-                className={`font-mono font-light text-[7px] tracking-[0.12em] uppercase ${
-                  on ? 'text-white/60' : 'text-white/[0.15]'
+                className={`font-mono font-light text-[8px] tracking-[0.12em] uppercase ${
+                  on ? 'text-white/80' : 'text-white/35'
                 }`}
               >
                 {t.label}

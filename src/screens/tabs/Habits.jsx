@@ -3,6 +3,73 @@ import { useStore, scores } from '../../store.js';
 import { SingleRing } from '../../components/Ring.jsx';
 import { DropIcon, PushupIcon, StretchIcon, FlameIcon } from '../../components/Icon.jsx';
 import PageHeader from './PageHeader.jsx';
+import { weekDates, todayKey, habitsDoneCount } from '../../lib/dates.js';
+
+const DAY_LBL = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+const WeekStrip = ({ history, todayHabits }) => {
+  const days = weekDates();
+  const today = todayKey();
+  return (
+    <div className="my-2.5">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="font-mono font-light text-[7.5px] tracking-[0.18em] uppercase text-white/[0.22]">
+          This week
+        </span>
+        <span className="font-mono font-light text-[7.5px] tracking-[0.12em] uppercase text-white/[0.18]">
+          Mon → Sun
+        </span>
+      </div>
+      <div className="flex gap-1.5">
+        {days.map((d, i) => {
+          const k = d.toISOString().slice(0, 10);
+          const isToday = k === today;
+          const isFuture = d.getTime() > new Date().setHours(23, 59, 59, 999);
+          const h = isToday ? todayHabits : history[k];
+          const done = h ? habitsDoneCount(h) : 0;
+          const fillPct = (done / 3) * 100;
+          const allDone = done === 3;
+          return (
+            <div
+              key={k}
+              className={`flex flex-1 flex-col items-center gap-1 rounded-[10px] border px-1 py-2 ${
+                isToday ? 'border-white/25 bg-white/[0.04]' : 'border-white/[0.06] bg-white/[0.018]'
+              } ${isFuture ? 'opacity-30' : ''}`}
+            >
+              <span className="font-mono font-light text-[7px] tracking-[0.1em] uppercase text-white/[0.35]">
+                {DAY_LBL[i]}
+              </span>
+              <span className="font-mono font-light text-[10px] tracking-[-0.02em] text-white/55">
+                {String(d.getDate()).padStart(2, '0')}
+              </span>
+              <div className="relative mt-0.5 h-[18px] w-[18px]">
+                <svg width="18" height="18" viewBox="0 0 18 18" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="9" cy="9" r="7" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2" />
+                  <circle
+                    cx="9" cy="9" r="7" fill="none"
+                    stroke={allDone ? '#fff' : 'rgba(255,255,255,0.55)'}
+                    strokeWidth="2" strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 7}
+                    strokeDashoffset={(2 * Math.PI * 7) * (1 - fillPct / 100)}
+                    style={{
+                      transition: 'stroke-dashoffset 0.4s ease',
+                      filter: allDone ? 'drop-shadow(0 0 3px rgba(255,255,255,0.35))' : 'none',
+                    }}
+                  />
+                </svg>
+                {h && !isFuture && (
+                  <span className="absolute inset-0 flex items-center justify-center font-mono font-light text-[7px] text-white/55">
+                    {done}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const Seg = ({ on, full, onClick }) => (
   <div onClick={onClick} className="relative h-[2px] flex-1 cursor-pointer rounded-[1px]" style={{
@@ -137,6 +204,8 @@ export default function Habits({ goTo }) {
       <div className="my-2 rounded-[10px] border border-white/[0.04] bg-white/[0.02] px-3 py-2.5">
         <div className="font-sans font-thin text-[10px] leading-[1.55] text-white/[0.22]">{insight}</div>
       </div>
+
+      <WeekStrip history={state.habitHistory ?? {}} todayHabits={state.habits} />
     </>
   );
 }
