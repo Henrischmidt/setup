@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Franschhoek Wine Farms · Tasting Passport 🍷</title>
+<meta name="description" content="Every wine farm in the Franschhoek Valley on one interactive map. Tick off the ones you've tasted and track your progress." />
+
+<!-- Open Graph / share preview -->
+<meta property="og:title" content="Franschhoek Wine Farms · Tasting Passport 🍷" />
+<meta property="og:description" content="Every wine farm in the Franschhoek Valley on one interactive map. Tick the ones you've tasted, share your progress." />
+<meta property="og:type" content="website" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root{
+    --wine:#6b1f3a;
+    --wine-deep:#4a1226;
+    --gold:#c69a4b;
+    --gold-soft:#e3c989;
+    --vine:#5a6b3b;
+    --cream:#f6f0e6;
+    --ink:#2b1820;
+    --paper:#fbf7f0;
+    --line:rgba(107,31,58,.14);
+    --shadow:0 10px 30px rgba(74,18,38,.14);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:Inter,system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #f3e6d6 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #ece4d2 0%, transparent 55%),
+      var(--paper);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--wine)}
+
+  /* ---------- Layout ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 16px 64px}
+  header.hero{
+    text-align:center;padding:38px 16px 22px;position:relative;
+  }
+  .kicker{
+    font:600 12px/1 Inter;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:14px;
+  }
+  h1{
+    font-family:'Cormorant Garamond',serif;font-weight:600;
+    font-size:clamp(38px,7vw,72px);line-height:.98;margin:0;color:var(--wine);
+    letter-spacing:.5px;
+  }
+  h1 em{font-style:italic;color:var(--gold)}
+  .sub{
+    margin:14px auto 0;max-width:560px;color:#7a5b66;
+    font-size:clamp(14px,2.4vw,17px);line-height:1.5;
+  }
+  .grape{font-size:30px;filter:saturate(1.1)}
+
+  /* ---------- Progress ---------- */
+  .progress-card{
+    margin:26px auto 0;max-width:640px;background:#fff;border:1px solid var(--line);
+    border-radius:18px;padding:18px 20px;box-shadow:var(--shadow);
+  }
+  .progress-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .progress-top b{font-size:26px;color:var(--wine);font-family:'Cormorant Garamond',serif;font-weight:600}
+  .progress-label{font-size:13px;color:#8a6b76}
+  .bar{height:12px;border-radius:99px;background:#efe3d4;overflow:hidden;margin-top:12px;border:1px solid rgba(0,0,0,.04)}
+  .bar > i{
+    display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--wine),var(--gold));
+    transition:width .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .badge-line{margin-top:12px;font-size:13px;color:var(--vine);font-weight:600;min-height:18px}
+
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  button.btn{
+    font:600 13.5px Inter;cursor:pointer;border-radius:11px;padding:10px 16px;
+    border:1px solid var(--line);background:#fff;color:var(--wine);transition:.15s;
+  }
+  button.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  button.btn.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
+  button.btn.primary:hover{background:var(--wine-deep)}
+
+  /* ---------- Map ---------- */
+  #map{
+    height:clamp(360px,52vh,560px);width:100%;margin:26px 0 0;
+    border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);
+    z-index:0;
+  }
+  .leaflet-popup-content-wrapper{border-radius:14px}
+  .leaflet-popup-content{margin:12px 14px;font-family:Inter}
+  .pop-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;color:var(--wine);line-height:1}
+  .pop-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--vine);text-transform:uppercase}
+  .pop-fact{margin-top:7px;font-size:12.5px;color:#5a4751;line-height:1.45;max-width:220px}
+  .pop-toggle{margin-top:10px;font:600 12px Inter;cursor:pointer;border:none;border-radius:9px;padding:7px 11px;background:var(--wine);color:#fff;width:100%}
+  .pop-toggle.done{background:var(--vine)}
+
+  .pin{
+    width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pin > span{transform:rotate(45deg);font-size:11px;line-height:1}
+
+  /* ---------- Legend ---------- */
+  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:16px;font-size:12.5px;color:#7a5b66}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+
+  /* ---------- List ---------- */
+  .list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:40px 0 6px;flex-wrap:wrap}
+  .list-head h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:30px;color:var(--wine);margin:0}
+  .search{position:relative}
+  .search input{
+    font:500 14px Inter;padding:10px 14px 10px 36px;border-radius:11px;border:1px solid var(--line);
+    background:#fff;min-width:220px;color:var(--ink);
+  }
+  .search input:focus{outline:2px solid var(--gold-soft)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5}
+
+  .cluster{margin-top:26px}
+  .cluster > h3{
+    font:600 12px Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);
+    margin:0 0 10px;display:flex;align-items:center;gap:10px;
+  }
+  .cluster > h3:after{content:"";flex:1;height:1px;background:var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+
+  .farm{
+    display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:13px 14px;cursor:pointer;transition:.16s;position:relative;overflow:hidden;
+  }
+  .farm:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--clr,#ccc)}
+  .farm:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--gold-soft)}
+  .farm.done{background:linear-gradient(180deg,#f7faf0,#fff)}
+  .farm.done .name{color:var(--vine)}
+  .check{
+    flex:0 0 auto;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.16s;background:#fff;
+  }
+  .farm.done .check{background:var(--vine);border-color:var(--vine)}
+  .check svg{opacity:0;transform:scale(.5);transition:.16s}
+  .farm.done .check svg{opacity:1;transform:scale(1)}
+  .body{min-width:0}
+  .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;line-height:1.05;color:var(--wine)}
+  .meta{margin-top:3px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--vine)}
+  .fact{margin-top:6px;font-size:12.5px;color:#6a5560;line-height:1.4}
+  .actions{display:flex;gap:14px;align-items:center;margin-top:9px;flex-wrap:wrap}
+  .locate,.directions{font-size:11px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:inline-flex;gap:4px;align-items:center;text-decoration:none}
+  .locate{color:var(--gold)}
+  .directions{color:var(--vine)}
+  .locate:hover,.directions:hover{text-decoration:underline}
+
+  /* star rating */
+  .stars{display:inline-flex;gap:2px;margin-top:9px}
+  .stars button{
+    background:none;border:none;cursor:pointer;padding:0;line-height:1;font-size:18px;color:#d9cab0;transition:transform .1s;
+  }
+  .stars button:hover{transform:scale(1.18)}
+  .stars button.on{color:var(--gold)}
+  .rate-label{font-size:11px;color:#9a8088;margin-left:6px;align-self:center}
+  .pop-stars{display:inline-flex;gap:2px;margin-top:8px}
+  .pop-stars button{background:none;border:none;cursor:pointer;font-size:18px;color:#d9cab0;padding:0;line-height:1}
+  .pop-stars button.on{color:var(--gold)}
+  .pop-dir{display:block;margin-top:8px;font-size:12px;font-weight:600;color:var(--vine);text-decoration:none}
+
+  footer{margin-top:48px;text-align:center;font-size:12px;color:#9a8088;line-height:1.7}
+  footer a{color:var(--gold)}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
+    background:var(--wine);color:#fff;padding:12px 20px;border-radius:12px;font:600 14px Inter;
+    box-shadow:var(--shadow);opacity:0;transition:.3s;z-index:9999;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">Cape Winelands · South Africa</div>
+    <h1><span class="grape">🍇</span> Franschhoek <em>Wine Farms</em></h1>
+    <p class="sub">The whole valley on one map — from the Huguenot estates of 1688 to the Cap Classique houses. Tick off the farms you've tasted at, ⭐ rate them, grab Google Maps directions, and share your tasting passport.</p>
+
+    <div class="progress-card">
+      <div class="progress-top">
+        <b><span id="count">0</span> of <span id="total">0</span> tasted</b>
+        <span class="progress-label" id="pct">0% of the valley explored</span>
+      </div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="badge-line" id="badge"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="shareBtn">🔗 Share my passport</button>
+      <button class="btn" id="randomBtn">🎲 Where to next?</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+    </div>
+  </header>
+
+  <div id="map"></div>
+  <div class="legend">
+    <span><i style="background:#6b1f3a"></i>Town &amp; the Pass</span>
+    <span><i style="background:#5a6b3b"></i>Happy Valley &amp; Robertsvlei</span>
+    <span><i style="background:#3f6fa0"></i>Groot Drakenstein &amp; Simondium</span>
+    <span><i style="background:#c69a4b"></i>Tasted ✓</span>
+  </div>
+
+  <div class="list-head">
+    <h2>The full list</h2>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b1f3a" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Search farms…" autocomplete="off" />
+    </div>
+  </div>
+  <div id="listRoot"></div>
+
+  <footer>
+    Hand-mapped tasting guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — always check tasting hours &amp; book ahead.<br/>
+    Your ticks &amp; ⭐ ratings are saved privately in this browser, and travel inside your share link. Built for the road 🍷
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================== DATA ======================
+   cluster: town | valley | drakenstein
+   Coordinates are best-effort approximate locations within the valley. */
+const FARMS = [
+  // --- Town & the Pass ---
+  {id:'haute-cabriere', name:'Haute Cabrière', cluster:'town', lat:-33.9143, lng:19.1278, tag:'Pierre Jourdan MCC', fact:'Sabrage demos & the home of Pierre Jourdan Cap Classique at the foot of the Franschhoek Pass.'},
+  {id:'la-petite-ferme', name:'La Petite Ferme', cluster:'town', lat:-33.9117, lng:19.1235, tag:'Vineyard restaurant', fact:'Jaw-dropping valley views and one of the most-loved lunch terraces in town.'},
+  {id:'mont-rochelle', name:'Mont Rochelle', cluster:'town', lat:-33.9168, lng:19.1150, tag:"Branson's estate", fact:"Richard Branson's vineyard & country hotel perched above the village."},
+  {id:'leeu-estates', name:'Leeu Estates / Mullineux', cluster:'town', lat:-33.9220, lng:19.1020, tag:'Boutique luxury', fact:'Home of the acclaimed Mullineux & Leeu Family Wines in a manicured garden estate.'},
+  {id:'chamonix', name:'Cape Chamonix', cluster:'town', lat:-33.9095, lng:19.1083, tag:'Pinot & Chardonnay', fact:'Once part of the historic 1688 La Cotte Huguenot farm; celebrated for cool-climate reds.'},
+  {id:'dieu-donne', name:'Dieu Donné', cluster:'town', lat:-33.9128, lng:19.1175, tag:'Hilltop vistas', fact:'Boutique winery with some of the most fabulous panoramas over the valley.'},
+  {id:'la-bri', name:'La Bri', cluster:'town', lat:-33.9185, lng:19.1015, tag:'1694 Huguenot farm', fact:'French for "shelter" — one of the original nine farms granted to the Huguenots.'},
+  {id:'stony-brook', name:'Stony Brook', cluster:'town', lat:-33.9270, lng:19.1040, tag:'Family boutique', fact:'Tiny, top-rated family cellar tucked up the quiet Robertsvlei road.'},
+  {id:'boekenhoutskloof', name:'Boekenhoutskloof', cluster:'town', lat:-33.9325, lng:19.1095, tag:'The Chocolate Block', fact:'The powerhouse behind The Chocolate Block, Porcupine Ridge & Wolftrap.'},
+  {id:'le-lude', name:'Le Lude', cluster:'town', lat:-33.9075, lng:19.1170, tag:'Cap Classique', fact:'Méthode Cap Classique specialist with an elegant Champagne-style tasting & high tea.'},
+  {id:'colmant', name:'Colmant', cluster:'town', lat:-33.8980, lng:19.0985, tag:'Bubbly only', fact:'Belgian-rooted house dedicated entirely to traditional-method Cap Classique.'},
+  {id:'grande-provence', name:'Grande Provence', cluster:'town', lat:-33.8958, lng:19.1003, tag:'Art & wine', fact:'Historic 1694 estate with a sculpture garden, gallery and fine-dining restaurant.'},
+  {id:'franschhoek-cellar', name:'Franschhoek Cellar', cluster:'town', lat:-33.9013, lng:19.0935, tag:'Relaxed & central', fact:'Easy-going tastings and lawns right on the edge of the village.'},
+  {id:'my-wyn', name:'My Wyn', cluster:'town', lat:-33.9060, lng:19.1110, tag:'Garagiste', fact:'Hand-crafted micro-batch wines from a true garagiste winemaker.'},
+
+  // --- Happy Valley & Robertsvlei ---
+  {id:'la-motte', name:'La Motte', cluster:'valley', lat:-33.8997, lng:19.0853, tag:'Historic Rupert estate', fact:'Manicured 1695 estate with a museum, hiking trail and the Pierneef à La Motte restaurant.'},
+  {id:'leopards-leap', name:"Leopard's Leap", cluster:'valley', lat:-33.9008, lng:19.0818, tag:'Family vineyards', fact:'Modern tasting hall, conservation focus and famously generous food-and-wine pairings.'},
+  {id:'rickety-bridge', name:'Rickety Bridge', cluster:'valley', lat:-33.8957, lng:19.0928, tag:'Since 1797', fact:'Between the Dassenberg and the river; estate cellar dating back to 1797.'},
+  {id:'moreson', name:'Môreson', cluster:'valley', lat:-33.8918, lng:19.0838, tag:'Bread & wine', fact:'Home of the beloved Bread & Wine restaurant amid lemon orchards and vines.'},
+  {id:'maison', name:'Maison', cluster:'valley', lat:-33.8935, lng:19.0865, tag:'Boutique & dining', fact:'Intimate estate pairing small-production wines with a destination restaurant.'},
+  {id:'holden-manz', name:'Holden Manz', cluster:'valley', lat:-33.8988, lng:19.0888, tag:"Franschhoek's hidden gem", fact:'Riverside luxury estate blending nature, art and bold reds.'},
+  {id:'glenwood', name:'GlenWood', cluster:'valley', lat:-33.9255, lng:19.0758, tag:'Robertsvlei valley', fact:'Secluded cellar up a dramatic side-valley, known for serious Chardonnay & Syrah.'},
+  {id:'eikehof', name:'Eikehof', cluster:'valley', lat:-33.9018, lng:19.0948, tag:'Fourth-generation', fact:'Small family farm working old-vine Sémillon and Syrah.'},
+  {id:'lynx', name:'Lynx Wines', cluster:'valley', lat:-33.8775, lng:19.0698, tag:'Watergat road', fact:'Friendly boutique cellar on the Wemmershoek side, big on blends.'},
+  {id:'la-bourgogne', name:'La Bourgogne', cluster:'valley', lat:-33.9040, lng:19.0958, tag:'Farm & figs', fact:'Working fruit-and-wine farm with a relaxed country tasting setting.'},
+  {id:'topiary', name:'Topiary', cluster:'valley', lat:-33.9050, lng:19.0750, tag:'Family estate', fact:'Quiet family wine-and-olive farm with mountain-framed tastings.'},
+
+  // --- Groot Drakenstein & Simondium ---
+  {id:'boschendal', name:'Boschendal', cluster:'drakenstein', lat:-33.8478, lng:18.9762, tag:'Est. 1685', fact:"One of SA's oldest farms — Cape Dutch manor, farm-to-table dining and the Werf garden."},
+  {id:'anthonij-rupert', name:'Anthonij Rupert (L’Ormarins)', cluster:'drakenstein', lat:-33.8682, lng:19.0148, tag:'Franschhoek Motor Museum', fact:'Grand R45 estate also home to the legendary Franschhoek Motor Museum.'},
+  {id:'babylonstoren', name:'Babylonstoren', cluster:'drakenstein', lat:-33.8267, lng:18.9253, tag:'Famous gardens', fact:'World-renowned 8-acre formal garden, spa, hotel and exceptional wines.'},
+  {id:'backsberg', name:'Backsberg', cluster:'drakenstein', lat:-33.8392, lng:18.9418, tag:'Carbon-neutral pioneer', fact:'One of the first carbon-neutral wineries in the country, with lawns made for picnics.'},
+  {id:'rupert-rothschild', name:'Rupert & Rothschild', cluster:'drakenstein', lat:-33.8468, lng:18.9472, tag:'Baron Edmond & Baroness Nadine', fact:'Rupert–Rothschild partnership crafting refined Bordeaux-style flagships.'},
+  {id:'vrede-en-lust', name:'Vrede en Lust', cluster:'drakenstein', lat:-33.8373, lng:18.9578, tag:'Est. 1688', fact:'Lively destination estate with a bistro, chapel and mountain backdrop.'},
+  {id:'noble-hill', name:'Noble Hill', cluster:'drakenstein', lat:-33.8412, lng:18.9432, tag:'Mediterranean vibe', fact:'Klein Dassenberg estate with a pizzeria-deli and laid-back tastings.'},
+  {id:'plaisir', name:'Plaisir / Plaisir de Merle', cluster:'drakenstein', lat:-33.8262, lng:18.9622, tag:'Wine & wellness', fact:'Sprawling estate reborn with vineyards, a guest farm and nature on the doorstep.'},
+  {id:'allee-bleue', name:'Allée Bleue', cluster:'drakenstein', lat:-33.8423, lng:18.9752, tag:'Herbs & vines', fact:'Picnics, herb gardens and easy-drinking wines by the Groot Drakenstein station.'},
+  {id:'solms-delta', name:'Solms-Delta', cluster:'drakenstein', lat:-33.8503, lng:18.9742, tag:'Music & heritage', fact:'Historic farm known for its Cape heritage, museum and Oesfees music festival.'},
+  {id:'bellingham', name:'Bellingham', cluster:'drakenstein', lat:-33.8550, lng:18.9650, tag:'The Bernard Series', fact:'Long-standing label with a wide range from everyday pours to the Bernard Series.'},
+
+  // --- Added to match the full Franschhoek Wine Route map ---
+  {id:'graham-beck', name:'Graham Beck', cluster:'drakenstein', lat:-33.8800, lng:19.0520, tag:'Cap Classique icon', fact:"Legendary bubbly house — the MCC poured at Mandela's inauguration and Obama's election night."},
+  {id:'la-chataigne', name:'La Chataigne', cluster:'valley', lat:-33.8920, lng:19.0720, tag:'Wine, plums & proteas', fact:'Family farm on the slopes producing wine alongside fruit and flowers.'},
+  {id:'le-manoir-de-brendel', name:'Le Manoir de Brendel', cluster:'valley', lat:-33.8965, lng:19.0680, tag:'Estate & Cap Classique', fact:'Boutique estate and guesthouse with a German touch and traditional-method bubbly.'},
+  {id:'akkerdal', name:'Akkerdal', cluster:'valley', lat:-33.8975, lng:19.0805, tag:'Grower-producer', fact:'Small hands-on cellar on the valley floor making honest, characterful wines.'},
+  {id:'la-vigne', name:'La Vigne', cluster:'valley', lat:-33.8975, lng:19.0905, tag:'By appointment', fact:'Quiet appointment-only cellar tucked in among the vines.'},
+  {id:'la-petite-provence', name:'La Petite Provence', cluster:'valley', lat:-33.8985, lng:19.0975, tag:'Relaxed tastings', fact:'Compact estate offering easy-going tastings just off the R45.'},
+  {id:'la-petite-vigne', name:'La Petite Vigne', cluster:'town', lat:-33.9080, lng:19.1050, tag:'Boutique parcels', fact:'Tiny boutique label crafted in small, careful parcels.'},
+  {id:'von-ortloff', name:'Von Ortloff', cluster:'town', lat:-33.9000, lng:19.1010, tag:'Precise Chardonnay', fact:'Appointment-only family cellar known for crisp Chardonnay and elegant blends.'},
+  {id:'la-chaumiere', name:'La Chaumière', cluster:'town', lat:-33.9092, lng:19.1130, tag:'French country', fact:'Intimate in-town wine spot with a relaxed French-country feel.'},
+  {id:'la-couronne', name:'La Couronne', cluster:'town', lat:-33.9120, lng:19.1090, tag:'Hillside hotel', fact:'Hotel-and-wine estate with sweeping views across the village and valley.'},
+  {id:'bo-la-motte', name:'Bo La Motte', cluster:'town', lat:-33.9160, lng:19.1080, tag:'Rustic & a chapel', fact:'Working farm with rustic tastings and a little chapel up the La Motte road.'},
+  {id:'blueberry-hill', name:'Blueberry Hill', cluster:'town', lat:-33.9180, lng:19.1150, tag:'Berries & views', fact:'Laid-back farm pairing its wines with namesake berries and big valley views.'},
+  {id:'haut-espoir', name:'Haut Espoir', cluster:'town', lat:-33.9280, lng:19.1000, tag:'Sustainable & high', fact:'Sustainability-minded boutique farm high on the southern slopes.'},
+];
+
+const CLUSTERS = {
+  town:        {label:'Franschhoek Town & the Pass', color:'#6b1f3a'},
+  valley:      {label:'Happy Valley & Robertsvlei',   color:'#5a6b3b'},
+  drakenstein: {label:'Groot Drakenstein & Simondium',color:'#3f6fa0'},
+};
+
+const STORE_KEY = 'fhk-wine-passport-v2';
+let visited = new Set();
+let ratings = {};   // { id: 1..5 }
+loadState();
+
+function loadState(){
+  // shared link wins: #v=id1,id2&r=id1.4_id2.5
+  try{
+    const p = new URLSearchParams(location.hash.slice(1));
+    if(p.get('v') || p.get('r')){
+      (p.get('v')||'').split(',').filter(Boolean).forEach(id=>visited.add(id));
+      (p.get('r')||'').split('_').filter(Boolean).forEach(pair=>{
+        const [id,n]=pair.split('.'); if(id&&n){ ratings[id]=+n; visited.add(id); }
+      });
+      save(); return;
+    }
+  }catch(e){}
+  try{
+    const d = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    visited = new Set(d.visited||[]);
+    ratings = d.ratings||{};
+  }catch(e){}
+}
+function save(){ try{localStorage.setItem(STORE_KEY, JSON.stringify({visited:[...visited], ratings}));}catch(e){} }
+function mapsUrl(f){ return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.name+', Franschhoek, South Africa')}`; }
+function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}&destination_place_id=${encodeURIComponent(f.name)}`; }
+function starsHtml(f, cls){
+  const r = ratings[f.id]||0;
+  let h=`<div class="${cls}" data-id="${f.id}">`;
+  for(let i=1;i<=5;i++) h+=`<button data-star="${i}" class="${i<=r?'on':''}" title="${i} star${i>1?'s':''}">★</button>`;
+  h+='</div>';
+  return h;
+}
+
+/* ====================== MAP ====================== */
+const map = L.map('map',{scrollWheelZoom:false}).setView([-33.885, 19.04], 12);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19
+}).addTo(map);
+map.on('click',()=>map.scrollWheelZoom.enable());
+
+const markers = {};
+function pinIcon(color){
+  return L.divIcon({
+    className:'',
+    html:`<div class="pin" style="background:${color}"><span>${color===CLUSTERS_GOLD?'✓':''}</span></div>`,
+    iconSize:[24,24], iconAnchor:[12,22], popupAnchor:[0,-20]
+  });
+}
+const CLUSTERS_GOLD='#c69a4b';
+function colorFor(f){ return visited.has(f.id) ? CLUSTERS_GOLD : CLUSTERS[f.cluster].color; }
+
+FARMS.forEach(f=>{
+  const m = L.marker([f.lat,f.lng],{icon:pinIcon(colorFor(f))}).addTo(map);
+  m.bindPopup(popupHtml(f));
+  m.on('popupopen',()=>wirePopup(f));
+  markers[f.id]=m;
+});
+
+function popupHtml(f){
+  const done = visited.has(f.id);
+  return `<div>
+    <div class="pop-name">${f.name}</div>
+    <div class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}</div>
+    <div class="pop-fact">${f.fact}</div>
+    ${starsHtml(f,'pop-stars')}
+    <a class="pop-dir" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Directions in Google Maps →</a>
+    <button class="pop-toggle ${done?'done':''}" data-id="${f.id}">${done?'✓ Tasted':'Mark as tasted'}</button>
+  </div>`;
+}
+function wirePopup(f){
+  const btn = document.querySelector(`.pop-toggle[data-id="${f.id}"]`);
+  if(btn) btn.onclick = ()=>{ toggle(f.id); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); };
+  const sb = document.querySelector(`.pop-stars[data-id="${f.id}"]`);
+  if(sb) sb.querySelectorAll('button').forEach(b=>b.onclick=()=>{ rate(f.id,+b.dataset.star); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); });
+}
+
+/* ====================== LIST ====================== */
+const listRoot = document.getElementById('listRoot');
+function renderList(filter=''){
+  listRoot.innerHTML='';
+  const q = filter.trim().toLowerCase();
+  Object.entries(CLUSTERS).forEach(([key,info])=>{
+    const items = FARMS.filter(f=>f.cluster===key &&
+      (!q || f.name.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q) || f.fact.toLowerCase().includes(q)));
+    if(!items.length) return;
+    const sec=document.createElement('div'); sec.className='cluster';
+    sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`;
+    const grid=document.createElement('div'); grid.className='grid';
+    items.forEach(f=>grid.appendChild(farmCard(f,info.color)));
+    sec.appendChild(grid); listRoot.appendChild(sec);
+  });
+}
+function farmCard(f,color){
+  const done=visited.has(f.id);
+  const el=document.createElement('div');
+  el.className='farm'+(done?' done':''); el.style.setProperty('--clr',color); el.dataset.id=f.id;
+  el.innerHTML=`
+    <div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="body">
+      <div class="name">${f.name}</div>
+      <div class="meta">${f.tag}</div>
+      <div class="fact">${f.fact}</div>
+      ${starsHtml(f,'stars')}
+      <div class="actions">
+        <span class="locate">📍 Show on map</span>
+        <a class="directions" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Google Maps</a>
+      </div>
+    </div>`;
+  el.querySelector('.check').onclick=(e)=>{e.stopPropagation();toggle(f.id);};
+  el.querySelector('.locate').onclick=(e)=>{e.stopPropagation();flyTo(f);};
+  el.querySelector('.directions').onclick=(e)=>e.stopPropagation();
+  el.querySelector('.stars').querySelectorAll('button').forEach(b=>{
+    b.onclick=(e)=>{e.stopPropagation();rate(f.id,+b.dataset.star);};
+  });
+  el.onclick=()=>toggle(f.id);
+  return el;
+}
+function flyTo(f){
+  document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
+  map.flyTo([f.lat,f.lng],14,{duration:.8});
+  setTimeout(()=>markers[f.id].openPopup(),650);
+}
+
+/* ====================== STATE ====================== */
+function toggle(id){
+  if(visited.has(id)){ visited.delete(id); delete ratings[id]; } else visited.add(id);
+  save();
+  refreshFarm(id);
+  updateProgress();
+}
+function rate(id, star){
+  // clicking the same star again clears it
+  if(ratings[id]===star){ delete ratings[id]; }
+  else { ratings[id]=star; visited.add(id); }
+  save();
+  refreshFarm(id);
+  updateProgress();
+}
+function refreshFarm(id){
+  const f=FARMS.find(x=>x.id===id);
+  markers[id].setIcon(pinIcon(colorFor(f)));
+  if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f); }
+  const card=document.querySelector(`.farm[data-id="${id}"]`);
+  if(card){
+    card.classList.toggle('done', visited.has(id));
+    const sb=card.querySelector('.stars');
+    if(sb) sb.querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.star<=(ratings[id]||0)));
+  }
+}
+
+const BADGES=[
+  [0,    'Cork still in — let’s pop it 🍾'],
+  [0.01, 'First sip logged. Proost!'],
+  [0.15, 'Finding your palate 🥂'],
+  [0.30, 'Serious tasting energy now'],
+  [0.50, 'Half the valley — designated driver who? 🍇'],
+  [0.75, 'Franschhoek connoisseur 🏆'],
+  [1,    'LEGEND — you’ve tasted the whole valley! 🍷👑'],
+];
+function updateProgress(){
+  const n=visited.size, t=FARMS.length;
+  document.getElementById('count').textContent=n;
+  document.getElementById('total').textContent=t;
+  const frac=n/t, pct=Math.round(frac*100);
+  document.getElementById('pct').textContent=pct+'% of the valley explored';
+  document.getElementById('barFill').style.width=pct+'%';
+  let badge=BADGES[0][1];
+  for(const [need,txt] of BADGES){ if(frac>=need) badge=txt; }
+  const rated=Object.values(ratings);
+  if(rated.length){
+    const avg=(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1);
+    badge += `  ·  ★ ${avg} avg (${rated.length} rated)`;
+  }
+  document.getElementById('badge').textContent=badge;
+}
+
+/* ====================== CONTROLS ====================== */
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function shareUrl(){
+  const v=[...visited].filter(id=>!ratings[id]).join(',');
+  const r=Object.entries(ratings).map(([id,n])=>id+'.'+n).join('_');
+  let h='#'+(v?'v='+v:''); if(r) h+=(v?'&':'')+'r='+r;
+  return location.origin+location.pathname+(h.length>1?h:'');
+}
+document.getElementById('shareBtn').onclick=async()=>{
+  const url=shareUrl();
+  const rated=Object.values(ratings);
+  const avg=rated.length?` (avg ★${(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1)})`:'';
+  const text=`I've tasted ${visited.size}/${FARMS.length} wine farms in Franschhoek 🍷${avg} Track yours:`;
+  try{
+    if(navigator.share){ await navigator.share({title:'My Franschhoek Tasting Passport',text,url}); }
+    else { await navigator.clipboard.writeText(url); toast('Share link copied! 🔗'); }
+  }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied! 🔗');}catch(_){ toast('Copy this URL from the address bar'); } }
+};
+document.getElementById('randomBtn').onclick=()=>{
+  const todo=FARMS.filter(f=>!visited.has(f.id));
+  if(!todo.length){ toast('You’ve done them all! 🏆'); return; }
+  const f=todo[Math.floor(Math.random()*todo.length)];
+  toast('Next stop: '+f.name+' 🍷'); flyTo(f);
+};
+document.getElementById('resetBtn').onclick=()=>{
+  if(!confirm('Clear all your ticks and ratings?')) return;
+  visited=new Set(); ratings={}; save();
+  history.replaceState(null,'',location.pathname);
+  FARMS.forEach(f=>markers[f.id].setIcon(pinIcon(colorFor(f))));
+  renderList(document.getElementById('search').value); updateProgress(); toast('Passport reset');
+};
+document.getElementById('search').oninput=(e)=>renderList(e.target.value);
+
+/* ====================== INIT ====================== */
+renderList();
+updateProgress();
+document.getElementById('farmCount').textContent=FARMS.length;
+// fit map to all markers
+map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12));
+</script>
+</body>
+</html>
