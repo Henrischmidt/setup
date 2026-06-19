@@ -4,39 +4,40 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Franschhoek Wine Farms · Tasting Passport 🍷</title>
-<meta name="description" content="Every wine farm in the Franschhoek Valley on one interactive map. Tick off the ones you've tasted and track your progress." />
+<meta name="description" content="Every wine farm in the Franschhoek Valley on one interactive map. Mark the ones you've been to, the ones you want to go to, rate them and share your list." />
 
-<!-- Open Graph / share preview -->
 <meta property="og:title" content="Franschhoek Wine Farms · Tasting Passport 🍷" />
-<meta property="og:description" content="Every wine farm in the Franschhoek Valley on one interactive map. Tick the ones you've tasted, share your progress." />
+<meta property="og:description" content="Every wine farm in the Franschhoek Valley on one map. Been there, want to go, rate & share." />
 <meta property="og:type" content="website" />
+
+<!-- PWA: add to home screen, app-like standalone -->
+<meta name="theme-color" content="#6b1f3a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Wine Farms" />
+<link rel="manifest" href="/wine-app.webmanifest" />
+<link rel="apple-touch-icon" href="/wine-icon.svg" />
+<link rel="icon" type="image/svg+xml" href="/wine-icon.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-<!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
   :root{
-    --wine:#6b1f3a;
-    --wine-deep:#4a1226;
-    --gold:#c69a4b;
-    --gold-soft:#e3c989;
-    --vine:#5a6b3b;
-    --cream:#f6f0e6;
-    --ink:#2b1820;
-    --paper:#fbf7f0;
-    --line:rgba(107,31,58,.14);
-    --shadow:0 10px 30px rgba(74,18,38,.14);
+    --wine:#6b1f3a; --wine-deep:#4a1226; --gold:#c69a4b; --gold-soft:#e3c989;
+    --red:#c0392b; --orange:#e08a2b; --green:#3e8e41;
+    --cream:#f6f0e6; --ink:#2b1820; --paper:#fbf7f0;
+    --line:rgba(107,31,58,.14); --shadow:0 10px 30px rgba(74,18,38,.14);
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
   body{
-    font-family:Inter,system-ui,sans-serif;
-    color:var(--ink);
+    font-family:Inter,system-ui,sans-serif;color:var(--ink);
     background:
       radial-gradient(1200px 600px at 80% -10%, #f3e6d6 0%, transparent 60%),
       radial-gradient(900px 500px at -10% 110%, #ece4d2 0%, transparent 55%),
@@ -44,78 +45,87 @@
     -webkit-font-smoothing:antialiased;
   }
   a{color:var(--wine)}
-
-  /* ---------- Layout ---------- */
   .wrap{max-width:1180px;margin:0 auto;padding:0 16px 64px}
-  header.hero{
-    text-align:center;padding:38px 16px 22px;position:relative;
+  body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+
+  /* ---------- Bottom app tab bar ---------- */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(74,18,38,.10);
+    padding-bottom:env(safe-area-inset-bottom);
   }
-  .kicker{
-    font:600 12px/1 Inter;letter-spacing:.28em;text-transform:uppercase;
-    color:var(--gold);margin-bottom:14px;
+  .tab{
+    flex:1;border:none;background:none;cursor:pointer;padding:9px 2px 8px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    font:600 10.5px Inter;color:#9a8088;transition:.14s;-webkit-tap-highlight-color:transparent;
   }
-  h1{
-    font-family:'Cormorant Garamond',serif;font-weight:600;
-    font-size:clamp(38px,7vw,72px);line-height:.98;margin:0;color:var(--wine);
-    letter-spacing:.5px;
-  }
+  .tab .ti{font-size:20px;line-height:1;filter:grayscale(.35);transition:.14s}
+  .tab.on{color:var(--wine)}
+  .tab.on .ti{filter:none;transform:translateY(-1px)}
+  .tab:active{transform:scale(.94)}
+  @media(min-width:760px){ .tabbar{max-width:520px;margin:0 auto;border-radius:18px 18px 0 0} }
+
+  /* ---------- Hero ---------- */
+  header.hero{text-align:center;padding:30px 12px 6px}
+  .kicker{font:600 12px/1 Inter;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(36px,7vw,68px);line-height:.98;margin:0;color:var(--wine);letter-spacing:.5px}
   h1 em{font-style:italic;color:var(--gold)}
-  .sub{
-    margin:14px auto 0;max-width:560px;color:#7a5b66;
-    font-size:clamp(14px,2.4vw,17px);line-height:1.5;
+  .sub{margin:12px auto 0;max-width:560px;color:#7a5b66;font-size:clamp(14px,2.4vw,16px);line-height:1.5}
+
+  /* ---------- Search (the focus, full width, top) ---------- */
+  .searchwrap{position:sticky;top:0;z-index:500;padding:14px 0 10px;background:linear-gradient(180deg,var(--paper) 70%,rgba(251,247,240,0))}
+  .search{position:relative;width:100%}
+  .search input{
+    width:100%;font:500 17px Inter;padding:17px 18px 17px 52px;border-radius:16px;
+    border:2px solid var(--line);background:#fff;color:var(--ink);box-shadow:var(--shadow);
   }
-  .grape{font-size:30px;filter:saturate(1.1)}
+  .search input::placeholder{color:#b09aa2}
+  .search input:focus{outline:none;border-color:var(--gold)}
+  .search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);opacity:.55}
+  .search .clearx{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:#efe3d4;color:var(--wine);width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:none}
+  .search .clearx.show{display:block}
+
+  /* ---------- How it works ---------- */
+  .howto{margin:8px auto 0;max-width:760px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:13px;color:#6a5560;line-height:1.55;box-shadow:var(--shadow)}
+  .howto b{color:var(--wine)}
+  .swatch{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin:0 2px;font-weight:600}
+  .swatch i{width:11px;height:11px;border-radius:50%;display:inline-block}
 
   /* ---------- Progress ---------- */
-  .progress-card{
-    margin:26px auto 0;max-width:640px;background:#fff;border:1px solid var(--line);
-    border-radius:18px;padding:18px 20px;box-shadow:var(--shadow);
-  }
-  .progress-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .progress-top b{font-size:26px;color:var(--wine);font-family:'Cormorant Garamond',serif;font-weight:600}
-  .progress-label{font-size:13px;color:#8a6b76}
-  .bar{height:12px;border-radius:99px;background:#efe3d4;overflow:hidden;margin-top:12px;border:1px solid rgba(0,0,0,.04)}
-  .bar > i{
-    display:block;height:100%;width:0;border-radius:99px;
-    background:linear-gradient(90deg,var(--wine),var(--gold));
-    transition:width .5s cubic-bezier(.2,.8,.2,1);
-  }
-  .badge-line{margin-top:12px;font-size:13px;color:var(--vine);font-weight:600;min-height:18px}
+  .progress-card{margin:16px auto 0;max-width:760px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
+  .tallies{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .tally{flex:1;min-width:96px;text-align:center;border-radius:13px;padding:11px 8px;border:1.5px solid var(--line)}
+  .tally b{display:block;font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1}
+  .tally span{font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#8a6b76}
+  .tally.green{background:#eef6ec;border-color:rgba(62,142,65,.3)} .tally.green b{color:var(--green)}
+  .tally.orange{background:#fbf0e0;border-color:rgba(224,138,43,.35)} .tally.orange b{color:var(--orange)}
+  .tally.red{background:#fbe9e7;border-color:rgba(192,57,43,.3)} .tally.red b{color:var(--red)}
+  .bar{height:11px;border-radius:99px;background:#efe3d4;overflow:hidden;margin-top:13px;border:1px solid rgba(0,0,0,.04)}
+  .bar > i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .badge-line{margin-top:11px;font-size:13px;color:var(--green);font-weight:600;min-height:18px;text-align:center}
 
-  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
-  button.btn{
-    font:600 13.5px Inter;cursor:pointer;border-radius:11px;padding:10px 16px;
-    border:1px solid var(--line);background:#fff;color:var(--wine);transition:.15s;
-  }
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  button.btn{font:600 13.5px Inter;cursor:pointer;border-radius:11px;padding:11px 16px;border:1px solid var(--line);background:#fff;color:var(--wine);transition:.15s}
   button.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   button.btn.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
   button.btn.primary:hover{background:var(--wine-deep)}
 
-  /* ---------- Filter bar ---------- */
-  .filters{margin:26px 0 0;display:flex;flex-direction:column;gap:10px;align-items:center}
+  /* ---------- Filters ---------- */
+  .filters{margin:22px 0 0;display:flex;flex-direction:column;gap:9px;align-items:center}
   .filter-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .chip{
-    font:600 13px Inter;cursor:pointer;border-radius:99px;padding:9px 15px;min-height:40px;
-    border:1.5px solid var(--line);background:#fff;color:#7a5b66;transition:.15s;display:inline-flex;align-items:center;gap:7px;
-  }
-  .chip:hover{border-color:var(--gold-soft)}
+  .chip{font:600 13px Inter;cursor:pointer;border-radius:99px;padding:9px 14px;min-height:40px;border:1.5px solid var(--line);background:#fff;color:#7a5b66;transition:.15s;display:inline-flex;align-items:center;gap:7px}
   .chip .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
   .chip.on{color:#fff;border-color:transparent}
-  .chip.on.c-town{background:var(--wine)}
-  .chip.on.c-valley{background:var(--vine)}
-  .chip.on.c-drakenstein{background:#3f6fa0}
-  .chip.off{opacity:.5}
-  .chip.off .dot{filter:grayscale(1)}
-  .chip.status.on{background:var(--gold);color:#3a2410;border-color:transparent}
+  .chip.on.c-town{background:var(--wine)} .chip.on.c-valley{background:#5a6b3b} .chip.on.c-drakenstein{background:#3f6fa0}
+  .chip.off{opacity:.45} .chip.off .dot{filter:grayscale(1)}
+  .chip.st.on.s-all{background:var(--wine)} .chip.st.on.s-none{background:var(--red)} .chip.st.on.s-want{background:var(--orange)} .chip.st.on.s-been{background:var(--green)}
   .filter-hint{font-size:11.5px;color:#9a8088}
 
   /* ---------- Map ---------- */
-  #map{
-    height:clamp(360px,52vh,560px);width:100%;margin:26px 0 0;
-    border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);
-    z-index:0;
-  }
-  #map.map-offline{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#efe3d4,#f6f0e6);}
+  #map{height:clamp(360px,52vh,560px);width:100%;margin:18px 0 0;border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);z-index:0;scroll-margin-top:84px}
+  .list-head{scroll-margin-top:84px}
+  #map.map-offline{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#efe3d4,#f6f0e6)}
   .map-msg{text-align:center;max-width:340px;padding:24px}
   .map-msg-emoji{font-size:34px;margin-bottom:8px}
   .map-msg b{display:block;font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--wine);margin-bottom:6px}
@@ -123,99 +133,70 @@
   .leaflet-popup-content-wrapper{border-radius:14px}
   .leaflet-popup-content{margin:12px 14px;font-family:Inter}
   .pop-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;color:var(--wine);line-height:1}
-  .pop-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--vine);text-transform:uppercase}
-  .pop-fact{margin-top:7px;font-size:12.5px;color:#5a4751;line-height:1.45;max-width:220px}
-  .pop-toggle{margin-top:10px;font:600 12px Inter;cursor:pointer;border:none;border-radius:9px;padding:7px 11px;background:var(--wine);color:#fff;width:100%}
-  .pop-toggle.done{background:var(--vine)}
+  .pop-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;letter-spacing:.04em;color:#5a6b3b;text-transform:uppercase}
+  .pop-fact{margin-top:7px;font-size:12.5px;color:#5a4751;line-height:1.45;max-width:230px}
+  .pop-note{margin-top:7px;font-size:11.5px;font-weight:600;color:#9a3b3b;line-height:1.4}
+  .pop-actions{display:flex;gap:6px;margin-top:10px}
+  .pop-actions button{flex:1;font:700 12px Inter;cursor:pointer;border:1.5px solid var(--line);border-radius:9px;padding:8px 4px;background:#fff}
+  .pop-actions button.been.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .pop-actions button.want.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+  .pop-dir{display:block;margin-top:8px;font-size:12px;font-weight:600;color:#5a6b3b;text-decoration:none}
 
-  .pin{
-    width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-    border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);
-    display:flex;align-items:center;justify-content:center;
-  }
-  .pin > span{transform:rotate(45deg);font-size:11px;line-height:1}
+  .pin{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+  .pin > span{transform:rotate(45deg);font-size:12px;line-height:1;color:#fff;font-weight:700}
 
   /* ---------- Legend ---------- */
-  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:16px;font-size:12.5px;color:#7a5b66}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:12.5px;color:#7a5b66}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
 
   /* ---------- List ---------- */
-  .list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:40px 0 6px;flex-wrap:wrap}
+  .list-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:34px 0 4px;flex-wrap:wrap}
   .list-head h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:30px;color:var(--wine);margin:0}
-  .search{position:relative}
-  .search input{
-    font:500 14px Inter;padding:10px 14px 10px 36px;border-radius:11px;border:1px solid var(--line);
-    background:#fff;min-width:220px;color:var(--ink);
-  }
-  .search input:focus{outline:2px solid var(--gold-soft)}
-  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5}
-
-  .cluster{margin-top:26px}
-  .cluster > h3{
-    font:600 12px Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);
-    margin:0 0 10px;display:flex;align-items:center;gap:10px;
-  }
+  .cluster{margin-top:24px}
+  .cluster > h3{font:600 12px Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 10px;display:flex;align-items:center;gap:10px}
   .cluster > h3:after{content:"";flex:1;height:1px;background:var(--line)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 
-  .farm{
-    display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);
-    border-radius:14px;padding:13px 14px;cursor:pointer;transition:.16s;position:relative;overflow:hidden;
-  }
-  .farm:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--clr,#ccc)}
-  .farm:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--gold-soft)}
-  .farm.done{background:linear-gradient(180deg,#f7faf0,#fff)}
-  .farm.done .name{color:var(--vine)}
-  .check{
-    flex:0 0 auto;width:30px;height:30px;border-radius:9px;border:2px solid var(--line);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.16s;background:#fff;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .check:hover{border-color:var(--vine)}
-  .farm.done .check{background:var(--vine);border-color:var(--vine)}
-  .check svg{opacity:0;transform:scale(.5);transition:.16s}
-  .farm.done .check svg{opacity:1;transform:scale(1)}
-  .body{min-width:0}
-  .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;line-height:1.05;color:var(--wine)}
-  .meta{margin-top:3px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--vine)}
+  .farm{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px 13px;position:relative;overflow:hidden;transition:.16s;border-left:5px solid var(--st,#c0392b)}
+  .farm:hover{box-shadow:var(--shadow)}
+  .farm.been{background:linear-gradient(180deg,#f5faf3,#fff)}
+  .farm.want{background:linear-gradient(180deg,#fdf6ea,#fff)}
+  .farm.closed{opacity:.72}
+  .name-row{display:flex;align-items:center;gap:8px}
+  .state-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;background:var(--st,#c0392b)}
+  .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:20px;line-height:1.05;color:var(--wine);cursor:pointer}
+  .farm.closed .name{text-decoration:line-through;text-decoration-color:rgba(154,59,59,.5)}
+  .meta{margin-top:3px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#5a6b3b}
   .fact{margin-top:6px;font-size:12.5px;color:#6a5560;line-height:1.4}
   .spill{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
-  .spill.appt{background:#eef2e2;color:#516b1f}
-  .spill.closed{background:#f3e0e0;color:#9a3b3b}
-  .farm.closed{opacity:.74}
-  .farm.closed .name{text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:rgba(154,59,59,.5)}
-  .pop-note{margin-top:7px;font-size:11.5px;font-weight:600;color:#9a3b3b;line-height:1.4}
-  .actions{display:flex;gap:14px;align-items:center;margin-top:9px;flex-wrap:wrap}
-  .locate,.directions{font-size:11px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:inline-flex;gap:4px;align-items:center;text-decoration:none}
-  .locate{color:var(--gold)}
-  .directions{color:var(--vine)}
+  .spill.appt{background:#eef2e2;color:#516b1f} .spill.closed{background:#f3e0e0;color:#9a3b3b}
+
+  /* two-state buttons */
+  .statebtns{display:flex;gap:8px;margin-top:11px}
+  .statebtns button{flex:1;font:700 13px Inter;cursor:pointer;border-radius:10px;padding:11px 8px;border:1.5px solid var(--line);background:#fff;color:#6a5560;transition:.14s;min-height:44px;-webkit-tap-highlight-color:transparent}
+  .statebtns button:active{transform:scale(.97)}
+  .statebtns button.been.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .statebtns button.want.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+
+  /* stars + note (shown when been or want) */
+  .extra{margin-top:10px;display:none}
+  .farm.been .extra,.farm.want .extra{display:block}
+  .stars{display:inline-flex;gap:2px;margin-left:-6px}
+  .stars button{background:none;border:none;cursor:pointer;line-height:1;font-size:25px;color:#d9cab0;padding:5px 6px;min-width:42px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+  .stars button:active{transform:scale(.9)} .stars button.on{color:var(--gold)}
+  .rate-label{font-size:11px;color:#9a8088}
+  .note{width:100%;margin-top:6px;font:500 13px Inter;padding:9px 11px;border-radius:10px;border:1.5px solid var(--line);background:#fdfaf5;color:var(--ink);resize:vertical;min-height:38px}
+  .note:focus{outline:none;border-color:var(--gold)}
+
+  .actions{display:flex;gap:14px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .locate,.directions{font-size:11.5px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:inline-flex;gap:4px;align-items:center;text-decoration:none}
+  .locate{color:var(--gold)} .directions{color:#5a6b3b}
   .locate:hover,.directions:hover{text-decoration:underline}
 
-  /* star rating */
-  .stars{display:inline-flex;gap:3px;margin-top:8px;margin-left:-5px}
-  .stars button{
-    background:none;border:none;cursor:pointer;line-height:1;font-size:25px;color:#d9cab0;transition:transform .1s;
-    padding:5px 6px;min-width:42px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .stars button:active{transform:scale(.9)}
-  .stars button:hover{transform:scale(1.12)}
-  .stars button.on{color:var(--gold)}
-  .rate-label{font-size:11px;color:#9a8088;margin-left:6px;align-self:center}
-  .pop-stars{display:inline-flex;gap:2px;margin-top:8px}
-  .pop-stars button{background:none;border:none;cursor:pointer;font-size:24px;color:#d9cab0;padding:3px 4px;line-height:1;min-width:36px;-webkit-tap-highlight-color:transparent}
-  .pop-stars button.on{color:var(--gold)}
-  .pop-dir{display:block;margin-top:8px;font-size:12px;font-weight:600;color:var(--vine);text-decoration:none}
-
-  footer{margin-top:48px;text-align:center;font-size:12px;color:#9a8088;line-height:1.7}
+  footer{margin-top:46px;text-align:center;font-size:12px;color:#9a8088;line-height:1.7}
   footer a{color:var(--gold)}
-  .toast{
-    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
-    background:var(--wine);color:#fff;padding:12px 20px;border-radius:12px;font:600 14px Inter;
-    box-shadow:var(--shadow);opacity:0;transition:.3s;z-index:9999;
-  }
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:var(--wine);color:#fff;padding:12px 20px;border-radius:12px;font:600 14px Inter;box-shadow:var(--shadow);z-index:9999;opacity:0;transition:.3s}
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-  .hidden{display:none!important}
 </style>
 </head>
 <body>
@@ -223,24 +204,41 @@
 
   <header class="hero">
     <div class="kicker">Cape Winelands · South Africa</div>
-    <h1><span class="grape">🍇</span> Franschhoek <em>Wine Farms</em></h1>
-    <p class="sub">The whole valley on one map — from the Huguenot estates of 1688 to the Cap Classique houses. Tick off the farms you've tasted at, ⭐ rate them, grab Google Maps directions, and share your tasting passport.</p>
+    <h1>🍇 Franschhoek <em>Wine Farms</em></h1>
+    <p class="sub">Every farm in the valley on one map. Mark where you've <b>been</b>, where you <b>want to go</b>, rate them and share your list.</p>
+  </header>
 
-    <div class="progress-card">
-      <div class="progress-top">
-        <b><span id="count">0</span> of <span id="total">0</span> tasted</b>
-        <span class="progress-label" id="pct">0% of the valley explored</span>
-      </div>
-      <div class="bar"><i id="barFill"></i></div>
-      <div class="badge-line" id="badge"></div>
+  <!-- SEARCH: the focus, full width, sticky at top -->
+  <div class="searchwrap">
+    <div class="search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b1f3a" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Search 53 wine farms…" autocomplete="off" />
+      <button class="clearx" id="clearx" aria-label="Clear">✕</button>
     </div>
+  </div>
 
+  <div class="howto">
+    <b>How it works —</b> tap a button on any farm:
+    <span class="swatch"><i style="background:var(--green)"></i>Been here</span> ·
+    <span class="swatch"><i style="background:var(--orange)"></i>Want to go</span> ·
+    <span class="swatch"><i style="background:var(--red)"></i>not yet</span>.
+    Give it ⭐ and leave a note. Everything saves on this device — hit <b>Share</b> to send your whole list.
+  </div>
+
+  <div class="progress-card">
+    <div class="tallies">
+      <div class="tally green"><b id="tBeen">0</b><span>🟢 Been there</span></div>
+      <div class="tally orange"><b id="tWant">0</b><span>🟠 Want to go</span></div>
+      <div class="tally red"><b id="tNone">0</b><span>🔴 Not yet</span></div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="badge-line" id="badge"></div>
     <div class="controls">
-      <button class="btn primary" id="shareBtn">🔗 Share my passport</button>
+      <button class="btn primary" id="shareBtn">🔗 Share my list</button>
       <button class="btn" id="randomBtn">🎲 Where to next?</button>
       <button class="btn" id="resetBtn">↺ Reset</button>
     </div>
-  </header>
+  </div>
 
   <div class="filters">
     <div class="filter-row" id="areaFilters">
@@ -248,45 +246,43 @@
       <button class="chip c-valley on" data-cluster="valley"><span class="dot" style="background:#5a6b3b"></span>Happy Valley &amp; Robertsvlei</button>
       <button class="chip c-drakenstein on" data-cluster="drakenstein"><span class="dot" style="background:#3f6fa0"></span>Groot Drakenstein &amp; Simondium</button>
     </div>
-    <div class="filter-row" id="statusFilters">
-      <button class="chip status on" data-status="all">All farms</button>
-      <button class="chip status" data-status="todo">◯ Still to taste</button>
-      <button class="chip status" data-status="done">✓ Tasted</button>
-    </div>
     <div class="filter-hint" id="filterHint"></div>
   </div>
 
   <div id="map"></div>
   <div class="legend">
-    <span><i style="background:#6b1f3a"></i>Town &amp; the Pass</span>
-    <span><i style="background:#5a6b3b"></i>Happy Valley &amp; Robertsvlei</span>
-    <span><i style="background:#3f6fa0"></i>Groot Drakenstein &amp; Simondium</span>
-    <span><i style="background:#c69a4b"></i>Tasted ✓</span>
+    <span><i style="background:var(--green)"></i>Been there</span>
+    <span><i style="background:var(--orange)"></i>Want to go</span>
+    <span><i style="background:var(--red)"></i>Not been yet</span>
     <span>📞 By appointment</span>
-    <span>⚠ Tastings closed (map updated for 2026)</span>
+    <span>⚠ Tastings closed (updated 2026)</span>
   </div>
 
-  <div class="list-head">
-    <h2>The full list</h2>
-    <div class="search">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b1f3a" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="search" type="search" placeholder="Search farms…" autocomplete="off" />
-    </div>
+  <div class="list-head" id="listAnchor">
+    <h2 id="listTitle">All farms</h2>
   </div>
   <div id="listRoot"></div>
 
   <footer>
-    Hand-mapped tasting guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — always check tasting hours &amp; book ahead.<br/>
-    Your ticks &amp; ⭐ ratings are saved privately in this browser, and travel inside your share link. Built for the road 🍷
+    Hand-mapped tasting guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — check tasting hours &amp; book ahead.<br/>
+    Your marks, ⭐ ratings &amp; notes save privately in this browser; your marks &amp; ratings also travel in the Share link. Built for the road 🍷
   </footer>
 </div>
+
+<!-- Bottom app tab bar -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab on" data-tab="map"><span class="ti">🗺️</span><span>Map</span></button>
+  <button class="tab" data-tab="all"><span class="ti">🍷</span><span>All</span></button>
+  <button class="tab" data-tab="been"><span class="ti">🟢</span><span>Been</span></button>
+  <button class="tab" data-tab="want"><span class="ti">🟠</span><span>Want</span></button>
+  <button class="tab" data-tab="share"><span class="ti">🔗</span><span>Share</span></button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
 <script>
 /* ====================== DATA ======================
-   cluster: town | valley | drakenstein
-   Coordinates are best-effort approximate locations within the valley. */
+   cluster: town | valley | drakenstein. Coordinates approximate. */
 const FARMS = [
   // --- Town & the Pass ---
   {id:'haute-cabriere', name:'Haute Cabrière', cluster:'town', lat:-33.9143, lng:19.1278, tag:'Pierre Jourdan MCC', fact:'Sabrage demos & the home of Pierre Jourdan Cap Classique at the foot of the Franschhoek Pass.'},
@@ -316,6 +312,14 @@ const FARMS = [
   {id:'lynx', name:'Lynx Wines', cluster:'valley', lat:-33.8775, lng:19.0698, tag:'Watergat road', fact:'Friendly boutique cellar on the Wemmershoek side, big on blends.'},
   {id:'la-bourgogne', name:'La Bourgogne', cluster:'valley', lat:-33.9040, lng:19.0958, tag:'Farm & figs', fact:'Working fruit-and-wine farm with a relaxed country tasting setting.'},
   {id:'topiary', name:'Topiary', cluster:'valley', lat:-33.9050, lng:19.0750, tag:'Family estate', fact:'Quiet family wine-and-olive farm with mountain-framed tastings.'},
+  {id:'la-chataigne', name:'La Chataigne', cluster:'valley', lat:-33.8920, lng:19.0720, tag:'Wine, plums & proteas', fact:'Family farm on the slopes producing wine alongside fruit and flowers.'},
+  {id:'le-manoir-de-brendel', name:'Le Manoir de Brendel', cluster:'valley', lat:-33.8965, lng:19.0680, tag:'Estate & Cap Classique', fact:'Boutique estate and guesthouse with a German touch and traditional-method bubbly.'},
+  {id:'akkerdal', name:'Akkerdal', cluster:'valley', lat:-33.8975, lng:19.0805, tag:'Grower-producer', fact:'Small hands-on cellar on the valley floor making honest, characterful wines.'},
+  {id:'la-vigne', name:'La Vigne', cluster:'valley', lat:-33.8975, lng:19.0905, tag:'By appointment', fact:'Quiet appointment-only cellar tucked in among the vines.'},
+  {id:'la-petite-provence', name:'La Petite Provence', cluster:'valley', lat:-33.8985, lng:19.0975, tag:'Relaxed tastings', fact:'Compact estate offering easy-going tastings just off the R45.'},
+  {id:'paserene', name:'Paserene', cluster:'valley', lat:-33.8975, lng:19.0830, tag:'Boutique terroir', fact:'Martin Smith’s acclaimed boutique winery — a glass tasting lounge shaped like a swallow’s nest over a dam.'},
+  {id:'klein-goederust', name:'Klein Goederust', cluster:'valley', lat:-33.8950, lng:19.0705, tag:'Black-owned estate', fact:'The first fully Black-owned winery in Franschhoek, with a warm tasting deck on the R45.'},
+  {id:'atlas-swift', name:'Atlas Swift', cluster:'valley', lat:-33.8965, lng:19.0945, tag:'Urban-style cellar', fact:'Contemporary small-batch label with a relaxed, design-led tasting experience.'},
 
   // --- Groot Drakenstein & Simondium ---
   {id:'boschendal', name:'Boschendal', cluster:'drakenstein', lat:-33.8478, lng:18.9762, tag:'Est. 1685', fact:"One of SA's oldest farms — Cape Dutch manor, farm-to-table dining and the Werf garden."},
@@ -330,14 +334,9 @@ const FARMS = [
   {id:'allee-bleue', name:'Allée Bleue', cluster:'drakenstein', lat:-33.8423, lng:18.9752, tag:'Herbs & vines', fact:'Picnics, herb gardens and easy-drinking wines by the Groot Drakenstein station.'},
   {id:'solms-delta', name:'Solms-Delta', cluster:'drakenstein', lat:-33.8503, lng:18.9742, tag:'Reopened 2025', fact:'Historic heritage farm — reopened in 2025 as Solms-Delta Wine Co. under new ownership, with tastings & Fyndraai restaurant returning.'},
   {id:'bellingham', name:'Bellingham', cluster:'drakenstein', lat:-33.8550, lng:18.9650, tag:'The Bernard Series', fact:'Long-standing label with a wide range from everyday pours to the Bernard Series.'},
-
-  // --- Added to match the full Franschhoek Wine Route map ---
   {id:'graham-beck', name:'Graham Beck', cluster:'drakenstein', lat:-33.8800, lng:19.0520, tag:'Cap Classique icon', fact:"Legendary bubbly house — the MCC poured at Mandela's inauguration and Obama's election night.", status:'closed', note:'Franschhoek tasting room has closed — Graham Beck now pours at its Robertson estate.'},
-  {id:'la-chataigne', name:'La Chataigne', cluster:'valley', lat:-33.8920, lng:19.0720, tag:'Wine, plums & proteas', fact:'Family farm on the slopes producing wine alongside fruit and flowers.'},
-  {id:'le-manoir-de-brendel', name:'Le Manoir de Brendel', cluster:'valley', lat:-33.8965, lng:19.0680, tag:'Estate & Cap Classique', fact:'Boutique estate and guesthouse with a German touch and traditional-method bubbly.'},
-  {id:'akkerdal', name:'Akkerdal', cluster:'valley', lat:-33.8975, lng:19.0805, tag:'Grower-producer', fact:'Small hands-on cellar on the valley floor making honest, characterful wines.'},
-  {id:'la-vigne', name:'La Vigne', cluster:'valley', lat:-33.8975, lng:19.0905, tag:'By appointment', fact:'Quiet appointment-only cellar tucked in among the vines.'},
-  {id:'la-petite-provence', name:'La Petite Provence', cluster:'valley', lat:-33.8985, lng:19.0975, tag:'Relaxed tastings', fact:'Compact estate offering easy-going tastings just off the R45.'},
+
+  // --- Upper village ---
   {id:'la-petite-vigne', name:'La Petite Vigne', cluster:'town', lat:-33.9080, lng:19.1050, tag:'Boutique parcels', fact:'Tiny boutique label crafted in small, careful parcels.'},
   {id:'von-ortloff', name:'Von Ortloff', cluster:'town', lat:-33.9000, lng:19.1010, tag:'Precise Chardonnay', fact:'Appointment-only family cellar known for crisp Chardonnay and elegant blends.', status:'appt'},
   {id:'la-chaumiere', name:'La Chaumière', cluster:'town', lat:-33.9092, lng:19.1130, tag:'French country', fact:'Intimate in-town wine spot with a relaxed French-country feel.', status:'closed', note:'No longer open to the public for tastings.'},
@@ -345,9 +344,6 @@ const FARMS = [
   {id:'bo-la-motte', name:'Bo La Motte', cluster:'town', lat:-33.9160, lng:19.1080, tag:'Rustic & a chapel', fact:'Working farm with rustic tastings and a little chapel up the La Motte road.'},
   {id:'blueberry-hill', name:'Blueberry Hill', cluster:'town', lat:-33.9180, lng:19.1150, tag:'Berries & views', fact:'Laid-back farm pairing its wines with namesake berries and big valley views.'},
   {id:'haut-espoir', name:'Haut Espoir', cluster:'town', lat:-33.9280, lng:19.1000, tag:'Sustainable & high', fact:'Sustainability-minded boutique farm high on the southern slopes.'},
-  {id:'paserene', name:'Paserene', cluster:'valley', lat:-33.8975, lng:19.0830, tag:'Boutique terroir', fact:'Martin Smith’s acclaimed boutique winery — a glass tasting lounge shaped like a swallow’s nest over a dam.'},
-  {id:'klein-goederust', name:'Klein Goederust', cluster:'valley', lat:-33.8950, lng:19.0705, tag:'Black-owned estate', fact:'The first fully Black-owned winery in Franschhoek, with a warm tasting deck on the R45.'},
-  {id:'atlas-swift', name:'Atlas Swift', cluster:'valley', lat:-33.8965, lng:19.0945, tag:'Urban-style cellar', fact:'Contemporary small-batch label with a relaxed, design-led tasting experience.'},
 ];
 
 const CLUSTERS = {
@@ -355,296 +351,292 @@ const CLUSTERS = {
   valley:      {label:'Happy Valley & Robertsvlei',   color:'#5a6b3b'},
   drakenstein: {label:'Groot Drakenstein & Simondium',color:'#3f6fa0'},
 };
+const STATE = {
+  none:{color:'#c0392b', label:'Not been'},
+  want:{color:'#e08a2b', label:'Want to go'},
+  been:{color:'#3e8e41', label:'Been there'},
+};
 
-const STORE_KEY = 'fhk-wine-passport-v2';
-let visited = new Set();
-let ratings = {};   // { id: 1..5 }
+/* ====================== STATE + STORAGE ====================== */
+const STORE_KEY = 'fhk-wine-passport-v3';
+let states = {};   // { id: 'want' | 'been' }
+let ratings = {};  // { id: 1..5 }
+let notes = {};    // { id: 'text' }
 loadState();
 
 function loadState(){
-  // shared link wins: #v=id1,id2&r=id1.4_id2.5
+  // shared link wins: #s=id.b_id.w & r=id.4_id.5
   try{
     const p = new URLSearchParams(location.hash.slice(1));
-    if(p.get('v') || p.get('r')){
-      (p.get('v')||'').split(',').filter(Boolean).forEach(id=>visited.add(id));
+    if(p.get('s') || p.get('r')){
+      (p.get('s')||'').split('_').filter(Boolean).forEach(pair=>{
+        const [id,c]=pair.split('.'); if(id&&c) states[id]= c==='b'?'been':'want';
+      });
       (p.get('r')||'').split('_').filter(Boolean).forEach(pair=>{
-        const [id,n]=pair.split('.'); if(id&&n){ ratings[id]=+n; visited.add(id); }
+        const [id,n]=pair.split('.'); if(id&&n){ ratings[id]=+n; if(!states[id]) states[id]='been'; }
       });
       save(); return;
     }
   }catch(e){}
   try{
-    const d = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
-    visited = new Set(d.visited||[]);
-    ratings = d.ratings||{};
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ const d=JSON.parse(raw); states=d.states||{}; ratings=d.ratings||{}; notes=d.notes||{}; return; }
+    // --- migrate earlier saves so individual progress is never lost ---
+    const v2 = JSON.parse(localStorage.getItem('fhk-wine-passport-v2')||'null');
+    if(v2 && (v2.visited || v2.ratings)){
+      (v2.visited||[]).forEach(id=>{ states[id]='been'; });
+      ratings = v2.ratings||{};
+      save(); return;
+    }
+    const v1 = JSON.parse(localStorage.getItem('fhk-wine-passport-v1')||'null');
+    if(Array.isArray(v1)){ v1.forEach(id=>{ states[id]='been'; }); save(); return; }
   }catch(e){}
 }
-function save(){ try{localStorage.setItem(STORE_KEY, JSON.stringify({visited:[...visited], ratings}));}catch(e){} }
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({states,ratings,notes})); }catch(e){} }
+function stOf(id){ return states[id]||'none'; }
+function colorFor(f){ return STATE[stOf(f.id)].color; }
 function mapsUrl(f){ return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.name+', Franschhoek, South Africa')}`; }
-function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}&destination_place_id=${encodeURIComponent(f.name)}`; }
+function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`; }
 function starsHtml(f, cls){
-  const r = ratings[f.id]||0;
-  let h=`<div class="${cls}" data-id="${f.id}">`;
-  for(let i=1;i<=5;i++) h+=`<button data-star="${i}" class="${i<=r?'on':''}" title="${i} star${i>1?'s':''}">★</button>`;
-  h+='</div>';
-  return h;
+  const r = ratings[f.id]||0; let h=`<div class="${cls}" data-id="${f.id}">`;
+  for(let i=1;i<=5;i++) h+=`<button data-star="${i}" class="${i<=r?'on':''}" title="${i}★">★</button>`;
+  return h+'</div>';
 }
 
 /* ====================== FILTER STATE ====================== */
 const activeClusters = new Set(Object.keys(CLUSTERS));
-let statusFilter = 'all';   // all | todo | done
+let statusFilter = 'all';   // all | none | want | been
 let searchQ = '';
 function isVisible(f){
   if(!activeClusters.has(f.cluster)) return false;
-  if(statusFilter==='todo' && visited.has(f.id)) return false;
-  if(statusFilter==='done' && !visited.has(f.id)) return false;
+  if(statusFilter!=='all' && stOf(f.id)!==statusFilter) return false;
   if(searchQ && !(f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ))) return false;
   return true;
 }
 
 /* ====================== MAP ====================== */
-const CLUSTERS_GOLD='#c69a4b';
 const MAP_OK = (typeof L !== 'undefined') && (navigator.onLine !== false);
 const markers = {};
 let map = null;
-function colorFor(f){ return visited.has(f.id) ? CLUSTERS_GOLD : CLUSTERS[f.cluster].color; }
-function pinIcon(color){
-  return L.divIcon({
-    className:'',
-    html:`<div class="pin" style="background:${color}"><span>${color===CLUSTERS_GOLD?'✓':''}</span></div>`,
-    iconSize:[24,24], iconAnchor:[12,22], popupAnchor:[0,-20]
-  });
+function pinIcon(f){
+  const st = stOf(f.id);
+  const glyph = st==='been' ? '✓' : st==='want' ? '★' : '';
+  return L.divIcon({ className:'', html:`<div class="pin" style="background:${STATE[st].color}"><span>${glyph}</span></div>`,
+    iconSize:[26,26], iconAnchor:[13,24], popupAnchor:[0,-22] });
 }
 function showMapFallback(){
-  const el=document.getElementById('map');
-  el.classList.add('map-offline');
+  const el=document.getElementById('map'); el.classList.add('map-offline');
   el.innerHTML=`<div class="map-msg"><div class="map-msg-emoji">🍷🗺️</div>
     <b>Map needs a connection</b>
-    <span>The interactive map couldn't load — you may be offline. Your full tickable checklist below still works perfectly. Reconnect &amp; refresh to drop the pins.</span></div>`;
+    <span>The interactive map couldn't load — you may be offline. Your full list below still works perfectly. Reconnect &amp; refresh to drop the pins.</span></div>`;
 }
 if(MAP_OK){
   try{
     map = L.map('map',{scrollWheelZoom:false}).setView([-33.885, 19.04], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-      attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19
-    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      {attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19}).addTo(map);
     map.on('click',()=>map.scrollWheelZoom.enable());
     FARMS.forEach(f=>{
-      const m = L.marker([f.lat,f.lng],{icon:pinIcon(colorFor(f))}).addTo(map);
-      m.bindPopup(popupHtml(f));
-      m.on('popupopen',()=>wirePopup(f));
-      markers[f.id]=m;
+      const m=L.marker([f.lat,f.lng],{icon:pinIcon(f)}).addTo(map);
+      m.bindPopup(popupHtml(f)); m.on('popupopen',()=>wirePopup(f)); markers[f.id]=m;
     });
   }catch(e){ map=null; showMapFallback(); }
-}else{
-  showMapFallback();
-}
+}else{ showMapFallback(); }
 
 function popupHtml(f){
-  const done = visited.has(f.id);
+  const st=stOf(f.id);
   return `<div>
     <div class="pop-name">${f.name}</div>
     <div class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}</div>
     <div class="pop-fact">${f.fact}</div>
-    ${f.status==='closed'?'<div class="pop-note">⚠ '+(f.note||'Tastings closed to the public.')+'</div>':''}
-    ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">📞 Tastings by appointment only.</div>':''}
-    ${starsHtml(f,'pop-stars')}
+    ${f.status==='closed'?'<div class="pop-note">⚠ '+(f.note||'Tastings closed.')+'</div>':''}
+    ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">📞 By appointment only.</div>':''}
+    ${starsHtml(f,'stars')}
+    <div class="pop-actions">
+      <button class="been ${st==='been'?'on':''}" data-act="been" data-id="${f.id}">✓ Been</button>
+      <button class="want ${st==='want'?'on':''}" data-act="want" data-id="${f.id}">★ Want to go</button>
+    </div>
     <a class="pop-dir" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Directions in Google Maps →</a>
-    <button class="pop-toggle ${done?'done':''}" data-id="${f.id}">${done?'✓ Tasted':'Mark as tasted'}</button>
   </div>`;
 }
 function wirePopup(f){
-  const btn = document.querySelector(`.pop-toggle[data-id="${f.id}"]`);
-  if(btn) btn.onclick = ()=>{ toggle(f.id); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); };
-  const sb = document.querySelector(`.pop-stars[data-id="${f.id}"]`);
+  document.querySelectorAll(`.pop-actions button[data-id="${f.id}"]`).forEach(b=>{
+    b.onclick=()=>{ setState(f.id, b.dataset.act); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); };
+  });
+  const sb=document.querySelector(`.leaflet-popup .stars[data-id="${f.id}"]`);
   if(sb) sb.querySelectorAll('button').forEach(b=>b.onclick=()=>{ rate(f.id,+b.dataset.star); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); });
 }
 
 /* ====================== LIST ====================== */
-const listRoot = document.getElementById('listRoot');
+const listRoot=document.getElementById('listRoot');
 function renderList(){
-  listRoot.innerHTML='';
-  let shown=0;
+  listRoot.innerHTML=''; let shown=0;
   Object.entries(CLUSTERS).forEach(([key,info])=>{
-    const items = FARMS.filter(f=>f.cluster===key && isVisible(f));
-    if(!items.length) return;
-    shown+=items.length;
+    const items=FARMS.filter(f=>f.cluster===key && isVisible(f));
+    if(!items.length) return; shown+=items.length;
     const sec=document.createElement('div'); sec.className='cluster';
     sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`;
     const grid=document.createElement('div'); grid.className='grid';
-    items.forEach(f=>grid.appendChild(farmCard(f,info.color)));
-    sec.appendChild(grid); listRoot.appendChild(sec);
+    items.forEach(f=>grid.appendChild(farmCard(f))); sec.appendChild(grid); listRoot.appendChild(sec);
   });
-  if(!shown) listRoot.innerHTML='<p style="text-align:center;color:#9a8088;padding:30px 0">No farms match these filters — try turning an area back on.</p>';
+  if(!shown) listRoot.innerHTML='<p style="text-align:center;color:#9a8088;padding:30px 0">No farms match — try a different filter or clear the search.</p>';
 }
 function applyFilters(){
-  // markers
-  FARMS.forEach(f=>{
-    const m=markers[f.id]; if(!m) return;
-    const on=isVisible(f), has=map.hasLayer(m);
-    if(on && !has) m.addTo(map); else if(!on && has) map.removeLayer(m);
-  });
+  FARMS.forEach(f=>{ const m=markers[f.id]; if(!m) return;
+    const on=isVisible(f), has=map&&map.hasLayer(m);
+    if(on&&!has) m.addTo(map); else if(!on&&has) map.removeLayer(m); });
   renderList();
   const total=FARMS.filter(isVisible).length;
   document.getElementById('filterHint').textContent=`Showing ${total} of ${FARMS.length} farms`;
 }
-function farmCard(f,color){
-  const done=visited.has(f.id);
-  const el=document.createElement('div');
-  el.className='farm'+(done?' done':'')+(f.status==='closed'?' closed':''); el.style.setProperty('--clr',color); el.dataset.id=f.id;
-  const pill = f.status==='closed' ? `<div><span class="spill closed">⚠ Tastings closed</span></div>`
-            : f.status==='appt' ? `<div><span class="spill appt">📞 By appointment</span></div>` : '';
+function farmCard(f){
+  const st=stOf(f.id); const el=document.createElement('div');
+  el.className='farm'+(st!=='none'?' '+st:'')+(f.status==='closed'?' closed':'');
+  el.style.setProperty('--st',STATE[st].color); el.dataset.id=f.id;
+  const pill=f.status==='closed'?`<div><span class="spill closed">⚠ Tastings closed</span></div>`
+           :f.status==='appt'?`<div><span class="spill appt">📞 By appointment</span></div>`:'';
   el.innerHTML=`
-    <div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-    <div class="body">
-      <div class="name">${f.name}</div>
-      <div class="meta">${f.tag}</div>
-      <div class="fact">${f.fact}</div>
-      ${f.note?`<div class="pop-note">${f.note}</div>`:''}
-      ${pill}
+    <div class="name-row"><span class="state-dot"></span><span class="name">${f.name}</span></div>
+    <div class="meta">${f.tag}</div>
+    <div class="fact">${f.fact}</div>
+    ${f.note?`<div class="pop-note">${f.note}</div>`:''}
+    ${pill}
+    <div class="statebtns">
+      <button class="been ${st==='been'?'on':''}" data-act="been">✓ Been here</button>
+      <button class="want ${st==='want'?'on':''}" data-act="want">★ Want to go</button>
+    </div>
+    <div class="extra">
       ${starsHtml(f,'stars')}
-      <div class="actions">
-        <span class="locate">📍 Show on map</span>
-        <a class="directions" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Google Maps</a>
-      </div>
+      <textarea class="note" rows="1" placeholder="Leave a note — what did you taste? 🍷">${(notes[f.id]||'').replace(/</g,'&lt;')}</textarea>
+    </div>
+    <div class="actions">
+      <span class="locate">📍 Show on map</span>
+      <a class="directions" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Google Maps</a>
     </div>`;
-  el.querySelector('.check').onclick=(e)=>{e.stopPropagation();toggle(f.id);};
-  el.querySelector('.locate').onclick=(e)=>{e.stopPropagation();flyTo(f);};
+  el.querySelectorAll('.statebtns button').forEach(b=>b.onclick=()=>setState(f.id,b.dataset.act));
+  el.querySelector('.name').onclick=()=>flyTo(f);
+  el.querySelector('.locate').onclick=()=>flyTo(f);
   el.querySelector('.directions').onclick=(e)=>e.stopPropagation();
-  el.querySelector('.stars').querySelectorAll('button').forEach(b=>{
-    b.onclick=(e)=>{e.stopPropagation();rate(f.id,+b.dataset.star);};
-  });
-  // tapping the card just shows it on the map — only the checkbox marks it tasted
-  el.onclick=()=>flyTo(f);
+  el.querySelector('.stars').querySelectorAll('button').forEach(b=>b.onclick=()=>rate(f.id,+b.dataset.star));
+  const ta=el.querySelector('.note');
+  ta.oninput=()=>{ const v=ta.value.trim(); if(v) notes[f.id]=ta.value; else delete notes[f.id]; save(); };
   return el;
 }
 function flyTo(f){
-  if(!map || !markers[f.id]){ toast('📍 '+f.name); return; }
+  if(!map||!markers[f.id]){ toast('📍 '+f.name); return; }
   document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
   map.flyTo([f.lat,f.lng],14,{duration:.8});
   setTimeout(()=>markers[f.id].openPopup(),650);
 }
 
-/* ====================== STATE ====================== */
-function toggle(id){
-  if(visited.has(id)){ visited.delete(id); delete ratings[id]; } else visited.add(id);
-  save();
-  refreshFarm(id);
+/* ====================== ACTIONS ====================== */
+function setState(id, act){
+  states[id] = (stOf(id)===act) ? undefined : act;   // tap again to clear
+  if(!states[id]) delete states[id];
+  save(); refreshFarm(id);
   if(statusFilter!=='all') applyFilters();
   updateProgress();
 }
 function rate(id, star){
-  // clicking the same star again clears it
-  if(ratings[id]===star){ delete ratings[id]; }
-  else { ratings[id]=star; visited.add(id); }
-  save();
-  refreshFarm(id);
+  if(ratings[id]===star) delete ratings[id]; else { ratings[id]=star; if(!states[id]) states[id]='been'; }
+  save(); refreshFarm(id);
   if(statusFilter!=='all') applyFilters();
   updateProgress();
 }
 function refreshFarm(id){
-  const f=FARMS.find(x=>x.id===id);
-  if(markers[id]){
-    markers[id].setIcon(pinIcon(colorFor(f)));
-    if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f); }
-  }
+  const f=FARMS.find(x=>x.id===id); const st=stOf(id);
+  if(markers[id]){ markers[id].setIcon(pinIcon(f));
+    if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f); } }
   const card=document.querySelector(`.farm[data-id="${id}"]`);
   if(card){
-    card.classList.toggle('done', visited.has(id));
-    const sb=card.querySelector('.stars');
-    if(sb) sb.querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.star<=(ratings[id]||0)));
+    card.classList.remove('been','want'); if(st!=='none') card.classList.add(st);
+    card.style.setProperty('--st',STATE[st].color);
+    card.querySelectorAll('.statebtns button').forEach(b=>b.classList.toggle('on', b.dataset.act===st));
+    card.querySelectorAll('.stars button').forEach(b=>b.classList.toggle('on', +b.dataset.star<=(ratings[id]||0)));
   }
 }
 
+/* ====================== PROGRESS ====================== */
 const BADGES=[
-  [0,    'Cork still in — let’s pop it 🍾'],
-  [0.01, 'First sip logged. Proost!'],
-  [0.15, 'Finding your palate 🥂'],
-  [0.30, 'Serious tasting energy now'],
-  [0.50, 'Half the valley — designated driver who? 🍇'],
-  [0.75, 'Franschhoek connoisseur 🏆'],
-  [1,    'LEGEND — you’ve tasted the whole valley! 🍷👑'],
+  [0,   'Cork still in — start ticking 🍾'],
+  [0.01,'First one down. Proost!'],
+  [0.15,'Finding your palate 🥂'],
+  [0.30,'Serious tasting energy now'],
+  [0.50,'Half the valley — designated driver who? 🍇'],
+  [0.75,'Franschhoek connoisseur 🏆'],
+  [1,   'LEGEND — the whole valley, tasted! 🍷👑'],
 ];
 function updateProgress(){
-  const n=visited.size, t=FARMS.length;
-  document.getElementById('count').textContent=n;
-  document.getElementById('total').textContent=t;
-  const frac=n/t, pct=Math.round(frac*100);
-  document.getElementById('pct').textContent=pct+'% of the valley explored';
-  document.getElementById('barFill').style.width=pct+'%';
-  let badge=BADGES[0][1];
-  for(const [need,txt] of BADGES){ if(frac>=need) badge=txt; }
+  const t=FARMS.length;
+  let been=0,want=0; FARMS.forEach(f=>{ const s=stOf(f.id); if(s==='been')been++; else if(s==='want')want++; });
+  const none=t-been-want;
+  document.getElementById('tBeen').textContent=been;
+  document.getElementById('tWant').textContent=want;
+  document.getElementById('tNone').textContent=none;
+  const frac=been/t; document.getElementById('barFill').style.width=Math.round(frac*100)+'%';
+  let badge=BADGES[0][1]; for(const [n,txt] of BADGES){ if(frac>=n) badge=txt; }
   const rated=Object.values(ratings);
-  if(rated.length){
-    const avg=(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1);
-    badge += `  ·  ★ ${avg} avg (${rated.length} rated)`;
-  }
+  if(rated.length){ const avg=(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1); badge+=`  ·  ★ ${avg} avg (${rated.length} rated)`; }
   document.getElementById('badge').textContent=badge;
 }
 
 /* ====================== CONTROLS ====================== */
-function toast(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200);
-}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
 function shareUrl(){
-  const v=[...visited].filter(id=>!ratings[id]).join(',');
+  const s=Object.entries(states).map(([id,v])=>id+'.'+(v==='been'?'b':'w')).join('_');
   const r=Object.entries(ratings).map(([id,n])=>id+'.'+n).join('_');
-  let h='#'+(v?'v='+v:''); if(r) h+=(v?'&':'')+'r='+r;
+  let h='#'; if(s)h+='s='+s; if(r)h+=(s?'&':'')+'r='+r;
   return location.origin+location.pathname+(h.length>1?h:'');
 }
 document.getElementById('shareBtn').onclick=async()=>{
-  const url=shareUrl();
-  const rated=Object.values(ratings);
-  const avg=rated.length?` (avg ★${(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1)})`:'';
-  const text=`I've tasted ${visited.size}/${FARMS.length} wine farms in Franschhoek 🍷${avg} Track yours:`;
+  const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;});
+  const text=`I've been to ${been}/${FARMS.length} Franschhoek wine farms 🍷 Here's my map:`;
   try{
-    if(navigator.share){ await navigator.share({title:'My Franschhoek Tasting Passport',text,url}); }
+    if(navigator.share){ await navigator.share({title:'My Franschhoek Wine List',text,url}); }
     else { await navigator.clipboard.writeText(url); toast('Share link copied! 🔗'); }
-  }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied! 🔗');}catch(_){ toast('Copy this URL from the address bar'); } }
+  }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied! 🔗');}catch(_){ toast('Copy the URL from the address bar'); } }
 };
 document.getElementById('randomBtn').onclick=()=>{
-  const todo=FARMS.filter(f=>!visited.has(f.id));
-  if(!todo.length){ toast('You’ve done them all! 🏆'); return; }
+  const todo=FARMS.filter(f=>stOf(f.id)==='none' && f.status!=='closed');
+  if(!todo.length){ toast('You’ve marked them all! 🏆'); return; }
   const f=todo[Math.floor(Math.random()*todo.length)];
-  toast('Next stop: '+f.name+' 🍷'); flyTo(f);
+  toast('Try next: '+f.name+' 🍷'); flyTo(f);
 };
 document.getElementById('resetBtn').onclick=()=>{
-  if(!confirm('Clear all your ticks and ratings?')) return;
-  visited=new Set(); ratings={}; save();
+  if(!confirm('Clear all your marks, ratings and notes?')) return;
+  states={}; ratings={}; notes={}; save();
   history.replaceState(null,'',location.pathname);
-  FARMS.forEach(f=>{ if(markers[f.id]) markers[f.id].setIcon(pinIcon(colorFor(f))); });
-  applyFilters(); updateProgress(); toast('Passport reset');
+  FARMS.forEach(f=>{ if(markers[f.id]) markers[f.id].setIcon(pinIcon(f)); });
+  applyFilters(); updateProgress(); toast('List reset');
 };
-document.getElementById('search').oninput=(e)=>{ searchQ=e.target.value.trim().toLowerCase(); applyFilters(); };
 
-// area chips (toggle on/off, but never allow zero — re-enabling all if empty)
-document.querySelectorAll('#areaFilters .chip').forEach(chip=>{
-  chip.onclick=()=>{
-    const c=chip.dataset.cluster;
-    if(activeClusters.has(c)) activeClusters.delete(c); else activeClusters.add(c);
-    if(activeClusters.size===0){ Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k)); }
-    document.querySelectorAll('#areaFilters .chip').forEach(ch=>{
-      const on=activeClusters.has(ch.dataset.cluster);
-      ch.classList.toggle('on',on); ch.classList.toggle('off',!on);
-    });
-    applyFilters();
-  };
+const searchEl=document.getElementById('search'), clearx=document.getElementById('clearx');
+searchEl.oninput=()=>{ searchQ=searchEl.value.trim().toLowerCase(); clearx.classList.toggle('show',!!searchQ); applyFilters(); };
+clearx.onclick=()=>{ searchEl.value=''; searchQ=''; clearx.classList.remove('show'); applyFilters(); searchEl.focus(); };
+
+document.querySelectorAll('#areaFilters .chip').forEach(chip=>chip.onclick=()=>{
+  const c=chip.dataset.cluster;
+  if(activeClusters.has(c)) activeClusters.delete(c); else activeClusters.add(c);
+  if(activeClusters.size===0) Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k));
+  document.querySelectorAll('#areaFilters .chip').forEach(ch=>{ const on=activeClusters.has(ch.dataset.cluster); ch.classList.toggle('on',on); ch.classList.toggle('off',!on); });
+  applyFilters();
 });
-// status chips (single select)
-document.querySelectorAll('#statusFilters .chip').forEach(chip=>{
-  chip.onclick=()=>{
-    statusFilter=chip.dataset.status;
-    document.querySelectorAll('#statusFilters .chip').forEach(ch=>ch.classList.toggle('on',ch===chip));
-    applyFilters();
-  };
+/* ---- Bottom tab bar (app-style navigation) ---- */
+const TAB_TITLES={all:'All farms', been:'🟢 Been there', want:'🟠 Want to go'};
+function setActiveTab(tab){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab)); }
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  const tab=t.dataset.tab;
+  if(tab==='share'){ document.getElementById('shareBtn').click(); return; }
+  if(tab==='map'){ setActiveTab('map'); document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  statusFilter = tab==='all' ? 'all' : tab;     // all | been | want
+  document.getElementById('listTitle').textContent = TAB_TITLES[tab]||'All farms';
+  setActiveTab(tab); applyFilters();
+  document.getElementById('listAnchor').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
 /* ====================== INIT ====================== */
-applyFilters();
-updateProgress();
 document.getElementById('farmCount').textContent=FARMS.length;
-// fit map to all markers
+applyFilters(); updateProgress();
 if(map) map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12));
 </script>
 </body>
