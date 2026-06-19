@@ -192,9 +192,83 @@
 
   .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:var(--wine);color:#fff;padding:11px 18px;border-radius:12px;font:600 13.5px Inter;box-shadow:var(--shadow);z-index:9999;opacity:0;transition:.28s var(--ease);pointer-events:none}
   .toast.show{transform:translateX(-50%);opacity:1}
+
+  /* ---------- Completion pill ---------- */
+  .pct{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:700 12px Inter;color:#fff;
+    background:linear-gradient(135deg,var(--wine),var(--gold));padding:5px 11px;border-radius:99px;box-shadow:var(--shadow)}
+  .pct svg{width:14px;height:14px}
+
+  /* ---------- Splash ---------- */
+  #splash{position:fixed;inset:0;z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(120% 80% at 50% 18%,#fbf1df 0,#ecd6b2 100%);transition:opacity .55s var(--ease),visibility .55s}
+  #splash.gone{opacity:0;visibility:hidden}
+  .splash-word{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:46px;color:var(--wine);line-height:1;opacity:0;animation:rise .7s var(--ease) .15s forwards}
+  .splash-word span{color:var(--gold);font-style:italic}
+  .splash-tag{font:700 11px Inter;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:6px;opacity:0;animation:rise .7s var(--ease) .35s forwards}
+  .scene{position:relative;width:min(360px,86vw);height:140px;margin-top:30px}
+  .ground{position:absolute;left:0;right:0;bottom:30px;height:3px;border-radius:2px;background:repeating-linear-gradient(90deg,#bd8b3c 0 13px,transparent 13px 26px);opacity:.45}
+  .dest{position:absolute;right:0;bottom:30px;animation:bobp 1.2s var(--ease) infinite}
+  .dest svg{width:42px;height:42px;display:block}
+  .car{position:absolute;bottom:24px;left:0;transform:translateX(-72px);animation:drive 2.7s cubic-bezier(.42,.04,.32,1) forwards}
+  .bob{animation:bob .5s ease-in-out infinite}
+  .carsvg{width:116px;height:76px;display:block}
+  .wheel{transform-box:fill-box;transform-origin:center;animation:spin .5s linear infinite}
+  .rg{transform-box:fill-box;transform-origin:center;transform:scale(0);animation:pop .5s var(--ease) forwards}
+  .rgrapes .rg:nth-child(1){animation-delay:.7s}
+  .rgrapes .rg:nth-child(2){animation-delay:1.05s}
+  .rgrapes .rg:nth-child(3){animation-delay:1.4s}
+  .rgrapes .rg:nth-child(4){animation-delay:1.75s}
+  .rgrapes .rg:nth-child(5){animation-delay:2.1s}
+  .loadbar{width:min(360px,86vw);height:5px;border-radius:99px;background:#e3d4bb;overflow:hidden;margin-top:26px}
+  .loadbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--wine),var(--gold));animation:load 2.8s var(--ease) forwards}
+  @keyframes drive{to{transform:translateX(calc(min(360px,86vw) - 150px))}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+  @keyframes load{to{width:100%}}
+  @keyframes rise{to{opacity:1;transform:translateY(0)}}
+  @keyframes bobp{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .splash-word,.splash-tag{transform:translateY(8px)}
+  @media(prefers-reduced-motion:reduce){
+    .car,.bob,.wheel,.rg,.loadbar i,.dest{animation-duration:.01s!important;animation-delay:0s!important}
+    .splash-word,.splash-tag{animation:none;opacity:1;transform:none}
+  }
 </style>
 </head>
 <body data-screen="map">
+
+<!-- 3s travel splash: car drives the route, picking up grapes on its roof -->
+<div id="splash">
+  <div class="splash-word">Wine<span>About</span></div>
+  <div class="splash-tag">Franschhoek wine route</div>
+  <div class="scene">
+    <div class="ground"></div>
+    <div class="dest">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#6b1f3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="#8e5aa8" stroke="#8e5aa8"/></svg>
+    </div>
+    <div class="car"><div class="bob">
+      <svg viewBox="0 0 140 90" class="carsvg" xmlns="http://www.w3.org/2000/svg">
+        <rect x="14" y="40" width="104" height="26" rx="12" fill="#6b1f3a"/>
+        <path d="M34 42 L46 24 Q49 18 56 18 L86 18 Q93 18 96 24 L108 42 Z" fill="#7d2342"/>
+        <path d="M52 40 L58 24 L70 24 L70 40 Z" fill="#cfe6ef"/>
+        <path d="M76 40 L76 24 L86 24 L90 40 Z" fill="#cfe6ef"/>
+        <rect x="112" y="48" width="8" height="9" rx="3" fill="#ffd16b"/>
+        <g class="wheel"><circle cx="40" cy="66" r="13" fill="#241019"/><circle cx="40" cy="66" r="5" fill="#f7ecd8"/><path d="M40 55v22M29 66h22" stroke="#6b1f3a" stroke-width="2" opacity=".5"/></g>
+        <g class="wheel"><circle cx="96" cy="66" r="13" fill="#241019"/><circle cx="96" cy="66" r="5" fill="#f7ecd8"/><path d="M96 55v22M85 66h22" stroke="#6b1f3a" stroke-width="2" opacity=".5"/></g>
+        <rect x="48" y="15" width="44" height="5" rx="2.5" fill="#bd8b3c"/>
+        <g class="rgrapes" fill="#8e5aa8">
+          <circle class="rg" cx="76" cy="9" r="6"/>
+          <circle class="rg" cx="62" cy="8" r="6"/>
+          <circle class="rg" cx="54" cy="14" r="6"/>
+          <circle class="rg" cx="70" cy="14" r="6"/>
+          <circle class="rg" cx="60" cy="18" r="6"/>
+        </g>
+      </svg>
+    </div></div>
+  </div>
+  <div class="loadbar"><i></i></div>
+</div>
+
 <div class="app">
 
   <!-- Sticky top bar: brand + search + area filters -->
@@ -202,7 +276,10 @@
     <div class="brand">
       <img src="/wine-icon.svg" alt="WineAbout"/>
       <span class="t">Wine<em>About</em></span>
-      <span class="sc" id="screenName">Map</span>
+      <span class="pct" id="pct" title="How much of the valley you've tasted">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg>
+        <span id="pctNum">0%</span>
+      </span>
     </div>
     <div class="search">
       <svg class="ico si" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -272,8 +349,8 @@
 <nav class="tabbar" id="tabbar">
   <button class="tab on" data-tab="map"><svg class="ico" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></button>
   <button class="tab" data-tab="explore"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Explore</span></button>
-  <button class="tab" data-tab="been"><span class="badge-dot" id="beenDot">0</span><svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg><span>Been</span></button>
-  <button class="tab" data-tab="want"><span class="badge-dot" id="wantDot" style="background:var(--orange)">0</span><svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Want</span></button>
+  <button class="tab" data-tab="been"><svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg><span>Been</span></button>
+  <button class="tab" data-tab="want"><svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Want</span></button>
   <button class="tab" data-tab="you"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>You</span></button>
 </nav>
 
@@ -399,7 +476,9 @@ if(MAP_OK){ try{
   map=L.map('map',{scrollWheelZoom:false,zoomControl:true}).setView([-33.885,19.04],12);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}).addTo(map);
   map.on('click',()=>map.scrollWheelZoom.enable());
-  FARMS.forEach(f=>{ const m=L.marker([f.lat,f.lng],{icon:pinIcon(f)}).addTo(map); m.bindPopup(popupHtml(f)); m.on('popupopen',()=>wirePopup(f)); markers[f.id]=m; });
+  FARMS.forEach(f=>{ const m=L.marker([f.lat,f.lng],{icon:pinIcon(f)}).addTo(map);
+    m.bindPopup(popupHtml(f),{autoPan:false,maxWidth:264,minWidth:212});
+    m.on('click',()=>flyTo(f)); m.on('popupopen',()=>wirePopup(f)); markers[f.id]=m; });
 }catch(e){ map=null; showMapFallback(); } } else { showMapFallback(); }
 
 function popupHtml(f){ const st=stOf(f.id);
@@ -461,7 +540,14 @@ function renderList(container,status){ container.innerHTML=''; let shown=0;
   if(!shown){ const msg= status==='been'?'No farms marked “Been” yet — tap ✓ on a farm to add it here.':status==='want'?'Nothing on your want-to-go list yet — tap the bookmark on a farm.':'No farms match your search or filters.';
     container.innerHTML=`<div class="empty">${IC.empty}${msg}</div>`; }
 }
-function flyTo(f){ if(!map||!markers[f.id]){ toast(f.name); return; } document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'}); map.flyTo([f.lat,f.lng],14,{duration:.7}); setTimeout(()=>markers[f.id].openPopup(),600); }
+function flyTo(f){ if(!map||!markers[f.id]){ toast(f.name); return; }
+  document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'});
+  // centre the farm, nudged down so its (upward-opening) popup is fully visible
+  const z=Math.max(map.getZoom(),14);
+  const c=map.unproject(map.project([f.lat,f.lng],z).subtract([0,72]),z);
+  map.flyTo(c,z,{duration:.7});
+  setTimeout(()=>markers[f.id].openPopup(),720);
+}
 
 /* ====================== ACTIONS ====================== */
 function setState(id,act){ states[id]=(stOf(id)===act)?undefined:act; if(!states[id])delete states[id]; save(); afterChange(id); }
@@ -480,7 +566,6 @@ function renderActive(){
 }
 function showScreen(name){
   currentScreen=name; document.body.dataset.screen=name;
-  document.getElementById('screenName').textContent=SCREEN_NAMES[name];
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='screen-'+name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
   window.scrollTo({top:0});
@@ -498,17 +583,33 @@ function updateProgress(){ const t=FARMS.length; let been=0,want=0; FARMS.forEac
   const rated=Object.values(ratings); if(rated.length){const avg=(rated.reduce((a,c)=>a+c,0)/rated.length).toFixed(1); b+=` · ★ ${avg} avg`;}
   document.getElementById('badge').textContent=b;
   document.getElementById('youSub').textContent=`You've been to ${been} of ${t} farms`;
-  const bd=document.getElementById('beenDot'), wd=document.getElementById('wantDot');
-  bd.textContent=been; bd.parentElement.classList.toggle('has',been>0);
-  wd.textContent=want; wd.parentElement.classList.toggle('has',want>0);
+  document.getElementById('pctNum').textContent=Math.round(frac*100)+'%';
 }
 
 /* ====================== CONTROLS ====================== */
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2000); }
+function toast(m,ms){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),ms||2000); }
+
+/* Playful quips — randomised per property for the "Surprise me" button */
+const QUIPS=[
+  'known for {tag} — ask the pourer to tell the story.',
+  'sip, swirl, savour — there’s no rush here.',
+  'book ahead — the tasting room fills up fast.',
+  'order a cheese board; it always tastes better with the view.',
+  'golden hour here is unreal — stay for the light.',
+  'driving? The spit bucket is your friend — no shame in it.',
+];
+function quipFor(f){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return f.name+' — '+q.replace(/{tag}/g,f.tag.toLowerCase()); }
 function shareUrl(){ const s=Object.entries(states).map(([id,v])=>id+'.'+(v==='been'?'b':'w')).join('_'); const r=Object.entries(ratings).map(([id,n])=>id+'.'+n).join('_'); let h='#'; if(s)h+='s='+s; if(r)h+=(s?'&':'')+'r='+r; return location.origin+location.pathname+(h.length>1?h:''); }
 document.getElementById('shareBtn').onclick=async()=>{ const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const text=`I've been to ${been}/${FARMS.length} Franschhoek wine farms 🍷 Here's my map:`;
   try{ if(navigator.share){await navigator.share({title:'My Franschhoek Wine List',text,url});} else {await navigator.clipboard.writeText(url); toast('Share link copied');} }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied');}catch(_){toast('Copy the URL from the address bar');} } };
-document.getElementById('randomBtn').onclick=()=>{ const todo=FARMS.filter(f=>stOf(f.id)==='none'&&f.status!=='closed'); if(!todo.length){toast('You’ve marked them all!');return;} const f=todo[Math.floor(Math.random()*todo.length)]; toast('Try next: '+f.name); showScreen('map'); flyTo(f); };
+document.getElementById('randomBtn').onclick=()=>{
+  const open=FARMS.filter(f=>f.status!=='closed');
+  const todo=open.filter(f=>stOf(f.id)==='none');
+  const pool=todo.length?todo:open;
+  const f=pool[Math.floor(Math.random()*pool.length)];
+  showScreen('map'); flyTo(f);                 // opens the farm, centred
+  setTimeout(()=>toast(quipFor(f),3400),780);  // quirky fact about the place
+};
 document.getElementById('resetBtn').onclick=()=>{ if(!confirm('Clear all your marks, ratings and notes?'))return; states={};ratings={};notes={};save(); history.replaceState(null,'',location.pathname); FARMS.forEach(f=>{if(markers[f.id])markers[f.id].setIcon(pinIcon(f));}); updateProgress(); renderActive(); if(currentScreen==='map')filterMapMarkers(); toast('Everything reset'); };
 
 const searchEl=document.getElementById('search'), clearx=document.getElementById('clearx');
@@ -529,6 +630,11 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showScreen(t.dataset.
 document.getElementById('farmCount').textContent=FARMS.length;
 updateProgress();
 if(map){ map.whenReady(()=>{ map.invalidateSize(); map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12)); }); }
+
+/* Splash: drive in for ~3s, then reveal the app (tap to skip) */
+const splash=document.getElementById('splash');
+if(splash){ const hide=()=>{ splash.classList.add('gone'); setTimeout(()=>{ splash.remove(); if(map) map.invalidateSize(); },700); };
+  splash.addEventListener('click',hide); setTimeout(hide,3000); }
 </script>
 </body>
 </html>
