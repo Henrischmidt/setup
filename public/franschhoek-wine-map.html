@@ -54,8 +54,7 @@
   .brand .t em{font-style:italic;color:var(--gold)}
   .brand .sc{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
 
-  .search{position:relative;display:none}
-  body[data-screen="explore"] .search,body[data-screen="been"] .search,body[data-screen="want"] .search{display:block}
+  .search{position:relative;display:block}
   .search .si{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--wine);opacity:.6;font-size:18px}
   .search input{width:100%;font:500 15px Inter;padding:12px 40px 12px 40px;border-radius:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);box-shadow:var(--shadow)}
   .search input::placeholder{color:#b6a3aa}
@@ -513,7 +512,11 @@ document.getElementById('randomBtn').onclick=()=>{ const todo=FARMS.filter(f=>st
 document.getElementById('resetBtn').onclick=()=>{ if(!confirm('Clear all your marks, ratings and notes?'))return; states={};ratings={};notes={};save(); history.replaceState(null,'',location.pathname); FARMS.forEach(f=>{if(markers[f.id])markers[f.id].setIcon(pinIcon(f));}); updateProgress(); renderActive(); if(currentScreen==='map')filterMapMarkers(); toast('Everything reset'); };
 
 const searchEl=document.getElementById('search'), clearx=document.getElementById('clearx');
-searchEl.oninput=()=>{ searchQ=searchEl.value.trim().toLowerCase(); clearx.classList.toggle('show',!!searchQ); renderActive(); };
+const LIST_SCREENS=['explore','been','want'];
+function gotoExplore(){ if(!LIST_SCREENS.includes(currentScreen)) showScreen('explore'); }
+searchEl.onfocus=gotoExplore;
+searchEl.oninput=()=>{ searchQ=searchEl.value.trim().toLowerCase(); clearx.classList.toggle('show',!!searchQ);
+  if(!LIST_SCREENS.includes(currentScreen)) showScreen('explore'); else renderActive(); };
 clearx.onclick=()=>{ searchEl.value=''; searchQ=''; clearx.classList.remove('show'); renderActive(); searchEl.focus(); };
 
 document.querySelectorAll('#areaFilters .chip').forEach(chip=>chip.onclick=()=>{ const c=chip.dataset.cluster; if(activeClusters.has(c))activeClusters.delete(c); else activeClusters.add(c); if(activeClusters.size===0)Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k));
