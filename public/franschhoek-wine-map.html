@@ -91,12 +91,35 @@
   button.btn.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
   button.btn.primary:hover{background:var(--wine-deep)}
 
+  /* ---------- Filter bar ---------- */
+  .filters{margin:26px 0 0;display:flex;flex-direction:column;gap:10px;align-items:center}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .chip{
+    font:600 13px Inter;cursor:pointer;border-radius:99px;padding:9px 15px;min-height:40px;
+    border:1.5px solid var(--line);background:#fff;color:#7a5b66;transition:.15s;display:inline-flex;align-items:center;gap:7px;
+  }
+  .chip:hover{border-color:var(--gold-soft)}
+  .chip .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .chip.on{color:#fff;border-color:transparent}
+  .chip.on.c-town{background:var(--wine)}
+  .chip.on.c-valley{background:var(--vine)}
+  .chip.on.c-drakenstein{background:#3f6fa0}
+  .chip.off{opacity:.5}
+  .chip.off .dot{filter:grayscale(1)}
+  .chip.status.on{background:var(--gold);color:#3a2410;border-color:transparent}
+  .filter-hint{font-size:11.5px;color:#9a8088}
+
   /* ---------- Map ---------- */
   #map{
     height:clamp(360px,52vh,560px);width:100%;margin:26px 0 0;
     border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);
     z-index:0;
   }
+  #map.map-offline{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#efe3d4,#f6f0e6);}
+  .map-msg{text-align:center;max-width:340px;padding:24px}
+  .map-msg-emoji{font-size:34px;margin-bottom:8px}
+  .map-msg b{display:block;font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--wine);margin-bottom:6px}
+  .map-msg span{font-size:13.5px;color:#7a5b66;line-height:1.5}
   .leaflet-popup-content-wrapper{border-radius:14px}
   .leaflet-popup-content{margin:12px 14px;font-family:Inter}
   .pop-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;color:var(--wine);line-height:1}
@@ -144,9 +167,11 @@
   .farm.done{background:linear-gradient(180deg,#f7faf0,#fff)}
   .farm.done .name{color:var(--vine)}
   .check{
-    flex:0 0 auto;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);
+    flex:0 0 auto;width:30px;height:30px;border-radius:9px;border:2px solid var(--line);cursor:pointer;
     display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.16s;background:#fff;
+    -webkit-tap-highlight-color:transparent;
   }
+  .check:hover{border-color:var(--vine)}
   .farm.done .check{background:var(--vine);border-color:var(--vine)}
   .check svg{opacity:0;transform:scale(.5);transition:.16s}
   .farm.done .check svg{opacity:1;transform:scale(1)}
@@ -154,6 +179,12 @@
   .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;line-height:1.05;color:var(--wine)}
   .meta{margin-top:3px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--vine)}
   .fact{margin-top:6px;font-size:12.5px;color:#6a5560;line-height:1.4}
+  .spill{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+  .spill.appt{background:#eef2e2;color:#516b1f}
+  .spill.closed{background:#f3e0e0;color:#9a3b3b}
+  .farm.closed{opacity:.74}
+  .farm.closed .name{text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:rgba(154,59,59,.5)}
+  .pop-note{margin-top:7px;font-size:11.5px;font-weight:600;color:#9a3b3b;line-height:1.4}
   .actions{display:flex;gap:14px;align-items:center;margin-top:9px;flex-wrap:wrap}
   .locate,.directions{font-size:11px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:inline-flex;gap:4px;align-items:center;text-decoration:none}
   .locate{color:var(--gold)}
@@ -161,15 +192,18 @@
   .locate:hover,.directions:hover{text-decoration:underline}
 
   /* star rating */
-  .stars{display:inline-flex;gap:2px;margin-top:9px}
+  .stars{display:inline-flex;gap:3px;margin-top:8px;margin-left:-5px}
   .stars button{
-    background:none;border:none;cursor:pointer;padding:0;line-height:1;font-size:18px;color:#d9cab0;transition:transform .1s;
+    background:none;border:none;cursor:pointer;line-height:1;font-size:25px;color:#d9cab0;transition:transform .1s;
+    padding:5px 6px;min-width:42px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
   }
-  .stars button:hover{transform:scale(1.18)}
+  .stars button:active{transform:scale(.9)}
+  .stars button:hover{transform:scale(1.12)}
   .stars button.on{color:var(--gold)}
   .rate-label{font-size:11px;color:#9a8088;margin-left:6px;align-self:center}
   .pop-stars{display:inline-flex;gap:2px;margin-top:8px}
-  .pop-stars button{background:none;border:none;cursor:pointer;font-size:18px;color:#d9cab0;padding:0;line-height:1}
+  .pop-stars button{background:none;border:none;cursor:pointer;font-size:24px;color:#d9cab0;padding:3px 4px;line-height:1;min-width:36px;-webkit-tap-highlight-color:transparent}
   .pop-stars button.on{color:var(--gold)}
   .pop-dir{display:block;margin-top:8px;font-size:12px;font-weight:600;color:var(--vine);text-decoration:none}
 
@@ -208,12 +242,28 @@
     </div>
   </header>
 
+  <div class="filters">
+    <div class="filter-row" id="areaFilters">
+      <button class="chip c-town on" data-cluster="town"><span class="dot" style="background:#6b1f3a"></span>Town &amp; the Pass</button>
+      <button class="chip c-valley on" data-cluster="valley"><span class="dot" style="background:#5a6b3b"></span>Happy Valley &amp; Robertsvlei</button>
+      <button class="chip c-drakenstein on" data-cluster="drakenstein"><span class="dot" style="background:#3f6fa0"></span>Groot Drakenstein &amp; Simondium</button>
+    </div>
+    <div class="filter-row" id="statusFilters">
+      <button class="chip status on" data-status="all">All farms</button>
+      <button class="chip status" data-status="todo">◯ Still to taste</button>
+      <button class="chip status" data-status="done">✓ Tasted</button>
+    </div>
+    <div class="filter-hint" id="filterHint"></div>
+  </div>
+
   <div id="map"></div>
   <div class="legend">
     <span><i style="background:#6b1f3a"></i>Town &amp; the Pass</span>
     <span><i style="background:#5a6b3b"></i>Happy Valley &amp; Robertsvlei</span>
     <span><i style="background:#3f6fa0"></i>Groot Drakenstein &amp; Simondium</span>
     <span><i style="background:#c69a4b"></i>Tasted ✓</span>
+    <span>📞 By appointment</span>
+    <span>⚠ Tastings closed (map updated for 2026)</span>
   </div>
 
   <div class="list-head">
@@ -247,7 +297,7 @@ const FARMS = [
   {id:'dieu-donne', name:'Dieu Donné', cluster:'town', lat:-33.9128, lng:19.1175, tag:'Hilltop vistas', fact:'Boutique winery with some of the most fabulous panoramas over the valley.'},
   {id:'la-bri', name:'La Bri', cluster:'town', lat:-33.9185, lng:19.1015, tag:'1694 Huguenot farm', fact:'French for "shelter" — one of the original nine farms granted to the Huguenots.'},
   {id:'stony-brook', name:'Stony Brook', cluster:'town', lat:-33.9270, lng:19.1040, tag:'Family boutique', fact:'Tiny, top-rated family cellar tucked up the quiet Robertsvlei road.'},
-  {id:'boekenhoutskloof', name:'Boekenhoutskloof', cluster:'town', lat:-33.9325, lng:19.1095, tag:'The Chocolate Block', fact:'The powerhouse behind The Chocolate Block, Porcupine Ridge & Wolftrap.'},
+  {id:'boekenhoutskloof', name:'Boekenhoutskloof', cluster:'town', lat:-33.9325, lng:19.1095, tag:'The Chocolate Block', fact:'The powerhouse behind The Chocolate Block, Porcupine Ridge & Wolftrap.', status:'appt'},
   {id:'le-lude', name:'Le Lude', cluster:'town', lat:-33.9075, lng:19.1170, tag:'Cap Classique', fact:'Méthode Cap Classique specialist with an elegant Champagne-style tasting & high tea.'},
   {id:'colmant', name:'Colmant', cluster:'town', lat:-33.8980, lng:19.0985, tag:'Bubbly only', fact:'Belgian-rooted house dedicated entirely to traditional-method Cap Classique.'},
   {id:'grande-provence', name:'Grande Provence', cluster:'town', lat:-33.8958, lng:19.1003, tag:'Art & wine', fact:'Historic 1694 estate with a sculpture garden, gallery and fine-dining restaurant.'},
@@ -269,7 +319,8 @@ const FARMS = [
 
   // --- Groot Drakenstein & Simondium ---
   {id:'boschendal', name:'Boschendal', cluster:'drakenstein', lat:-33.8478, lng:18.9762, tag:'Est. 1685', fact:"One of SA's oldest farms — Cape Dutch manor, farm-to-table dining and the Werf garden."},
-  {id:'anthonij-rupert', name:'Anthonij Rupert (L’Ormarins)', cluster:'drakenstein', lat:-33.8682, lng:19.0148, tag:'Franschhoek Motor Museum', fact:'Grand R45 estate also home to the legendary Franschhoek Motor Museum.'},
+  {id:'anthonij-rupert', name:'Anthonij Rupert', cluster:'drakenstein', lat:-33.8682, lng:19.0148, tag:'Premium Cape flagships', fact:'The Rupert family’s flagship cellar on the historic L’Ormarins estate — serious, age-worthy wines.'},
+  {id:'lormarins', name:'L’Ormarins', cluster:'drakenstein', lat:-33.8635, lng:19.0080, tag:'Franschhoek Motor Museum', fact:'Historic R45 estate and home of the legendary Franschhoek Motor Museum; pours Terra del Capo & Cap Classique.'},
   {id:'babylonstoren', name:'Babylonstoren', cluster:'drakenstein', lat:-33.8267, lng:18.9253, tag:'Famous gardens', fact:'World-renowned 8-acre formal garden, spa, hotel and exceptional wines.'},
   {id:'backsberg', name:'Backsberg', cluster:'drakenstein', lat:-33.8392, lng:18.9418, tag:'Carbon-neutral pioneer', fact:'One of the first carbon-neutral wineries in the country, with lawns made for picnics.'},
   {id:'rupert-rothschild', name:'Rupert & Rothschild', cluster:'drakenstein', lat:-33.8468, lng:18.9472, tag:'Baron Edmond & Baroness Nadine', fact:'Rupert–Rothschild partnership crafting refined Bordeaux-style flagships.'},
@@ -277,23 +328,26 @@ const FARMS = [
   {id:'noble-hill', name:'Noble Hill', cluster:'drakenstein', lat:-33.8412, lng:18.9432, tag:'Mediterranean vibe', fact:'Klein Dassenberg estate with a pizzeria-deli and laid-back tastings.'},
   {id:'plaisir', name:'Plaisir / Plaisir de Merle', cluster:'drakenstein', lat:-33.8262, lng:18.9622, tag:'Wine & wellness', fact:'Sprawling estate reborn with vineyards, a guest farm and nature on the doorstep.'},
   {id:'allee-bleue', name:'Allée Bleue', cluster:'drakenstein', lat:-33.8423, lng:18.9752, tag:'Herbs & vines', fact:'Picnics, herb gardens and easy-drinking wines by the Groot Drakenstein station.'},
-  {id:'solms-delta', name:'Solms-Delta', cluster:'drakenstein', lat:-33.8503, lng:18.9742, tag:'Music & heritage', fact:'Historic farm known for its Cape heritage, museum and Oesfees music festival.'},
+  {id:'solms-delta', name:'Solms-Delta', cluster:'drakenstein', lat:-33.8503, lng:18.9742, tag:'Reopened 2025', fact:'Historic heritage farm — reopened in 2025 as Solms-Delta Wine Co. under new ownership, with tastings & Fyndraai restaurant returning.'},
   {id:'bellingham', name:'Bellingham', cluster:'drakenstein', lat:-33.8550, lng:18.9650, tag:'The Bernard Series', fact:'Long-standing label with a wide range from everyday pours to the Bernard Series.'},
 
   // --- Added to match the full Franschhoek Wine Route map ---
-  {id:'graham-beck', name:'Graham Beck', cluster:'drakenstein', lat:-33.8800, lng:19.0520, tag:'Cap Classique icon', fact:"Legendary bubbly house — the MCC poured at Mandela's inauguration and Obama's election night."},
+  {id:'graham-beck', name:'Graham Beck', cluster:'drakenstein', lat:-33.8800, lng:19.0520, tag:'Cap Classique icon', fact:"Legendary bubbly house — the MCC poured at Mandela's inauguration and Obama's election night.", status:'closed', note:'Franschhoek tasting room has closed — Graham Beck now pours at its Robertson estate.'},
   {id:'la-chataigne', name:'La Chataigne', cluster:'valley', lat:-33.8920, lng:19.0720, tag:'Wine, plums & proteas', fact:'Family farm on the slopes producing wine alongside fruit and flowers.'},
   {id:'le-manoir-de-brendel', name:'Le Manoir de Brendel', cluster:'valley', lat:-33.8965, lng:19.0680, tag:'Estate & Cap Classique', fact:'Boutique estate and guesthouse with a German touch and traditional-method bubbly.'},
   {id:'akkerdal', name:'Akkerdal', cluster:'valley', lat:-33.8975, lng:19.0805, tag:'Grower-producer', fact:'Small hands-on cellar on the valley floor making honest, characterful wines.'},
   {id:'la-vigne', name:'La Vigne', cluster:'valley', lat:-33.8975, lng:19.0905, tag:'By appointment', fact:'Quiet appointment-only cellar tucked in among the vines.'},
   {id:'la-petite-provence', name:'La Petite Provence', cluster:'valley', lat:-33.8985, lng:19.0975, tag:'Relaxed tastings', fact:'Compact estate offering easy-going tastings just off the R45.'},
   {id:'la-petite-vigne', name:'La Petite Vigne', cluster:'town', lat:-33.9080, lng:19.1050, tag:'Boutique parcels', fact:'Tiny boutique label crafted in small, careful parcels.'},
-  {id:'von-ortloff', name:'Von Ortloff', cluster:'town', lat:-33.9000, lng:19.1010, tag:'Precise Chardonnay', fact:'Appointment-only family cellar known for crisp Chardonnay and elegant blends.'},
-  {id:'la-chaumiere', name:'La Chaumière', cluster:'town', lat:-33.9092, lng:19.1130, tag:'French country', fact:'Intimate in-town wine spot with a relaxed French-country feel.'},
+  {id:'von-ortloff', name:'Von Ortloff', cluster:'town', lat:-33.9000, lng:19.1010, tag:'Precise Chardonnay', fact:'Appointment-only family cellar known for crisp Chardonnay and elegant blends.', status:'appt'},
+  {id:'la-chaumiere', name:'La Chaumière', cluster:'town', lat:-33.9092, lng:19.1130, tag:'French country', fact:'Intimate in-town wine spot with a relaxed French-country feel.', status:'closed', note:'No longer open to the public for tastings.'},
   {id:'la-couronne', name:'La Couronne', cluster:'town', lat:-33.9120, lng:19.1090, tag:'Hillside hotel', fact:'Hotel-and-wine estate with sweeping views across the village and valley.'},
   {id:'bo-la-motte', name:'Bo La Motte', cluster:'town', lat:-33.9160, lng:19.1080, tag:'Rustic & a chapel', fact:'Working farm with rustic tastings and a little chapel up the La Motte road.'},
   {id:'blueberry-hill', name:'Blueberry Hill', cluster:'town', lat:-33.9180, lng:19.1150, tag:'Berries & views', fact:'Laid-back farm pairing its wines with namesake berries and big valley views.'},
   {id:'haut-espoir', name:'Haut Espoir', cluster:'town', lat:-33.9280, lng:19.1000, tag:'Sustainable & high', fact:'Sustainability-minded boutique farm high on the southern slopes.'},
+  {id:'paserene', name:'Paserene', cluster:'valley', lat:-33.8975, lng:19.0830, tag:'Boutique terroir', fact:'Martin Smith’s acclaimed boutique winery — a glass tasting lounge shaped like a swallow’s nest over a dam.'},
+  {id:'klein-goederust', name:'Klein Goederust', cluster:'valley', lat:-33.8950, lng:19.0705, tag:'Black-owned estate', fact:'The first fully Black-owned winery in Franschhoek, with a warm tasting deck on the R45.'},
+  {id:'atlas-swift', name:'Atlas Swift', cluster:'valley', lat:-33.8965, lng:19.0945, tag:'Urban-style cellar', fact:'Contemporary small-batch label with a relaxed, design-led tasting experience.'},
 ];
 
 const CLUSTERS = {
@@ -336,14 +390,24 @@ function starsHtml(f, cls){
   return h;
 }
 
-/* ====================== MAP ====================== */
-const map = L.map('map',{scrollWheelZoom:false}).setView([-33.885, 19.04], 12);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-  attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19
-}).addTo(map);
-map.on('click',()=>map.scrollWheelZoom.enable());
+/* ====================== FILTER STATE ====================== */
+const activeClusters = new Set(Object.keys(CLUSTERS));
+let statusFilter = 'all';   // all | todo | done
+let searchQ = '';
+function isVisible(f){
+  if(!activeClusters.has(f.cluster)) return false;
+  if(statusFilter==='todo' && visited.has(f.id)) return false;
+  if(statusFilter==='done' && !visited.has(f.id)) return false;
+  if(searchQ && !(f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ))) return false;
+  return true;
+}
 
+/* ====================== MAP ====================== */
+const CLUSTERS_GOLD='#c69a4b';
+const MAP_OK = (typeof L !== 'undefined') && (navigator.onLine !== false);
 const markers = {};
+let map = null;
+function colorFor(f){ return visited.has(f.id) ? CLUSTERS_GOLD : CLUSTERS[f.cluster].color; }
 function pinIcon(color){
   return L.divIcon({
     className:'',
@@ -351,15 +415,30 @@ function pinIcon(color){
     iconSize:[24,24], iconAnchor:[12,22], popupAnchor:[0,-20]
   });
 }
-const CLUSTERS_GOLD='#c69a4b';
-function colorFor(f){ return visited.has(f.id) ? CLUSTERS_GOLD : CLUSTERS[f.cluster].color; }
-
-FARMS.forEach(f=>{
-  const m = L.marker([f.lat,f.lng],{icon:pinIcon(colorFor(f))}).addTo(map);
-  m.bindPopup(popupHtml(f));
-  m.on('popupopen',()=>wirePopup(f));
-  markers[f.id]=m;
-});
+function showMapFallback(){
+  const el=document.getElementById('map');
+  el.classList.add('map-offline');
+  el.innerHTML=`<div class="map-msg"><div class="map-msg-emoji">🍷🗺️</div>
+    <b>Map needs a connection</b>
+    <span>The interactive map couldn't load — you may be offline. Your full tickable checklist below still works perfectly. Reconnect &amp; refresh to drop the pins.</span></div>`;
+}
+if(MAP_OK){
+  try{
+    map = L.map('map',{scrollWheelZoom:false}).setView([-33.885, 19.04], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+      attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19
+    }).addTo(map);
+    map.on('click',()=>map.scrollWheelZoom.enable());
+    FARMS.forEach(f=>{
+      const m = L.marker([f.lat,f.lng],{icon:pinIcon(colorFor(f))}).addTo(map);
+      m.bindPopup(popupHtml(f));
+      m.on('popupopen',()=>wirePopup(f));
+      markers[f.id]=m;
+    });
+  }catch(e){ map=null; showMapFallback(); }
+}else{
+  showMapFallback();
+}
 
 function popupHtml(f){
   const done = visited.has(f.id);
@@ -367,6 +446,8 @@ function popupHtml(f){
     <div class="pop-name">${f.name}</div>
     <div class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}</div>
     <div class="pop-fact">${f.fact}</div>
+    ${f.status==='closed'?'<div class="pop-note">⚠ '+(f.note||'Tastings closed to the public.')+'</div>':''}
+    ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">📞 Tastings by appointment only.</div>':''}
     ${starsHtml(f,'pop-stars')}
     <a class="pop-dir" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Directions in Google Maps →</a>
     <button class="pop-toggle ${done?'done':''}" data-id="${f.id}">${done?'✓ Tasted':'Mark as tasted'}</button>
@@ -381,30 +462,46 @@ function wirePopup(f){
 
 /* ====================== LIST ====================== */
 const listRoot = document.getElementById('listRoot');
-function renderList(filter=''){
+function renderList(){
   listRoot.innerHTML='';
-  const q = filter.trim().toLowerCase();
+  let shown=0;
   Object.entries(CLUSTERS).forEach(([key,info])=>{
-    const items = FARMS.filter(f=>f.cluster===key &&
-      (!q || f.name.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q) || f.fact.toLowerCase().includes(q)));
+    const items = FARMS.filter(f=>f.cluster===key && isVisible(f));
     if(!items.length) return;
+    shown+=items.length;
     const sec=document.createElement('div'); sec.className='cluster';
     sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`;
     const grid=document.createElement('div'); grid.className='grid';
     items.forEach(f=>grid.appendChild(farmCard(f,info.color)));
     sec.appendChild(grid); listRoot.appendChild(sec);
   });
+  if(!shown) listRoot.innerHTML='<p style="text-align:center;color:#9a8088;padding:30px 0">No farms match these filters — try turning an area back on.</p>';
+}
+function applyFilters(){
+  // markers
+  FARMS.forEach(f=>{
+    const m=markers[f.id]; if(!m) return;
+    const on=isVisible(f), has=map.hasLayer(m);
+    if(on && !has) m.addTo(map); else if(!on && has) map.removeLayer(m);
+  });
+  renderList();
+  const total=FARMS.filter(isVisible).length;
+  document.getElementById('filterHint').textContent=`Showing ${total} of ${FARMS.length} farms`;
 }
 function farmCard(f,color){
   const done=visited.has(f.id);
   const el=document.createElement('div');
-  el.className='farm'+(done?' done':''); el.style.setProperty('--clr',color); el.dataset.id=f.id;
+  el.className='farm'+(done?' done':'')+(f.status==='closed'?' closed':''); el.style.setProperty('--clr',color); el.dataset.id=f.id;
+  const pill = f.status==='closed' ? `<div><span class="spill closed">⚠ Tastings closed</span></div>`
+            : f.status==='appt' ? `<div><span class="spill appt">📞 By appointment</span></div>` : '';
   el.innerHTML=`
     <div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
     <div class="body">
       <div class="name">${f.name}</div>
       <div class="meta">${f.tag}</div>
       <div class="fact">${f.fact}</div>
+      ${f.note?`<div class="pop-note">${f.note}</div>`:''}
+      ${pill}
       ${starsHtml(f,'stars')}
       <div class="actions">
         <span class="locate">📍 Show on map</span>
@@ -417,10 +514,12 @@ function farmCard(f,color){
   el.querySelector('.stars').querySelectorAll('button').forEach(b=>{
     b.onclick=(e)=>{e.stopPropagation();rate(f.id,+b.dataset.star);};
   });
-  el.onclick=()=>toggle(f.id);
+  // tapping the card just shows it on the map — only the checkbox marks it tasted
+  el.onclick=()=>flyTo(f);
   return el;
 }
 function flyTo(f){
+  if(!map || !markers[f.id]){ toast('📍 '+f.name); return; }
   document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
   map.flyTo([f.lat,f.lng],14,{duration:.8});
   setTimeout(()=>markers[f.id].openPopup(),650);
@@ -431,6 +530,7 @@ function toggle(id){
   if(visited.has(id)){ visited.delete(id); delete ratings[id]; } else visited.add(id);
   save();
   refreshFarm(id);
+  if(statusFilter!=='all') applyFilters();
   updateProgress();
 }
 function rate(id, star){
@@ -439,12 +539,15 @@ function rate(id, star){
   else { ratings[id]=star; visited.add(id); }
   save();
   refreshFarm(id);
+  if(statusFilter!=='all') applyFilters();
   updateProgress();
 }
 function refreshFarm(id){
   const f=FARMS.find(x=>x.id===id);
-  markers[id].setIcon(pinIcon(colorFor(f)));
-  if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f); }
+  if(markers[id]){
+    markers[id].setIcon(pinIcon(colorFor(f)));
+    if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f); }
+  }
   const card=document.querySelector(`.farm[data-id="${id}"]`);
   if(card){
     card.classList.toggle('done', visited.has(id));
@@ -510,17 +613,39 @@ document.getElementById('resetBtn').onclick=()=>{
   if(!confirm('Clear all your ticks and ratings?')) return;
   visited=new Set(); ratings={}; save();
   history.replaceState(null,'',location.pathname);
-  FARMS.forEach(f=>markers[f.id].setIcon(pinIcon(colorFor(f))));
-  renderList(document.getElementById('search').value); updateProgress(); toast('Passport reset');
+  FARMS.forEach(f=>{ if(markers[f.id]) markers[f.id].setIcon(pinIcon(colorFor(f))); });
+  applyFilters(); updateProgress(); toast('Passport reset');
 };
-document.getElementById('search').oninput=(e)=>renderList(e.target.value);
+document.getElementById('search').oninput=(e)=>{ searchQ=e.target.value.trim().toLowerCase(); applyFilters(); };
+
+// area chips (toggle on/off, but never allow zero — re-enabling all if empty)
+document.querySelectorAll('#areaFilters .chip').forEach(chip=>{
+  chip.onclick=()=>{
+    const c=chip.dataset.cluster;
+    if(activeClusters.has(c)) activeClusters.delete(c); else activeClusters.add(c);
+    if(activeClusters.size===0){ Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k)); }
+    document.querySelectorAll('#areaFilters .chip').forEach(ch=>{
+      const on=activeClusters.has(ch.dataset.cluster);
+      ch.classList.toggle('on',on); ch.classList.toggle('off',!on);
+    });
+    applyFilters();
+  };
+});
+// status chips (single select)
+document.querySelectorAll('#statusFilters .chip').forEach(chip=>{
+  chip.onclick=()=>{
+    statusFilter=chip.dataset.status;
+    document.querySelectorAll('#statusFilters .chip').forEach(ch=>ch.classList.toggle('on',ch===chip));
+    applyFilters();
+  };
+});
 
 /* ====================== INIT ====================== */
-renderList();
+applyFilters();
 updateProgress();
 document.getElementById('farmCount').textContent=FARMS.length;
 // fit map to all markers
-map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12));
+if(map) map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12));
 </script>
 </body>
 </html>
