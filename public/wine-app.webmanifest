@@ -1,10 +1,10 @@
 {
-  "name": "Franschhoek Wine Farms",
-  "short_name": "Wine Farms",
+  "name": "WineAbout — Franschhoek",
+  "short_name": "WineAbout",
   "description": "Every wine farm in the Franschhoek Valley — been there, want to go, rate & share.",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fbf7f0",
+  "background_color": "#faf6ef",
   "theme_color": "#6b1f3a",
   "start_url": "/franschhoek-wine-map.html",
   "scope": "/",

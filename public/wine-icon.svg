@@ -1,13 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#6b1f3a"/>
-  <rect x="247" y="116" width="18" height="70" rx="9" fill="#5a6b3b"/>
-  <g fill="#c69a4b">
-    <circle cx="256" cy="202" r="34"/>
-    <circle cx="210" cy="252" r="34"/>
-    <circle cx="302" cy="252" r="34"/>
-    <circle cx="256" cy="258" r="34"/>
-    <circle cx="232" cy="306" r="34"/>
-    <circle cx="280" cy="306" r="34"/>
-    <circle cx="256" cy="354" r="34"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7ecd8"/>
+      <stop offset="1" stop-color="#ecd6b2"/>
+    </linearGradient>
+  </defs>
+  <!-- backdrop -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="392" cy="132" r="40" fill="#f4cf72" opacity=".7"/>
+  <!-- road -->
+  <rect x="40" y="372" width="432" height="26" rx="13" fill="#d8bd8f"/>
+  <rect x="150" y="381" width="50" height="8" rx="4" fill="#f7ecd8"/>
+  <rect x="312" y="381" width="50" height="8" rx="4" fill="#f7ecd8"/>
+
+  <!-- car -->
+  <g>
+    <!-- cabin -->
+    <path d="M168 286 L196 214 Q201 202 214 202 L298 202 Q311 202 316 214 L344 286 Z" fill="#7d2342"/>
+    <!-- windows -->
+    <path d="M210 278 L226 222 L252 222 L252 278 Z" fill="#cfe6ef"/>
+    <path d="M262 278 L262 222 L286 222 L302 278 Z" fill="#cfe6ef"/>
+    <!-- body -->
+    <rect x="104" y="270" width="304" height="78" rx="30" fill="#6b1f3a"/>
+    <!-- headlight -->
+    <rect x="388" y="300" width="16" height="18" rx="6" fill="#ffd16b"/>
+    <!-- wheels -->
+    <circle cx="182" cy="350" r="40" fill="#241019"/>
+    <circle cx="330" cy="350" r="40" fill="#241019"/>
+    <circle cx="182" cy="350" r="15" fill="#f7ecd8"/>
+    <circle cx="330" cy="350" r="15" fill="#f7ecd8"/>
+  </g>
+
+  <!-- roof rack -->
+  <rect x="206" y="198" width="100" height="10" rx="5" fill="#bd8b3c"/>
+
+  <!-- grapes on the roof -->
+  <g>
+    <!-- stem + leaf -->
+    <rect x="252" y="120" width="9" height="20" rx="4" fill="#5a3b1e"/>
+    <path d="M258 132 q34 -16 52 4 q-30 16 -52 -4 z" fill="#5a8f3a"/>
+    <g fill="#8e5aa8">
+      <circle cx="256" cy="150" r="16"/>
+      <circle cx="236" cy="164" r="16"/>
+      <circle cx="276" cy="164" r="16"/>
+      <circle cx="220" cy="180" r="16"/>
+      <circle cx="256" cy="178" r="16"/>
+      <circle cx="292" cy="180" r="16"/>
+      <circle cx="240" cy="194" r="16"/>
+      <circle cx="272" cy="194" r="16"/>
+      <circle cx="256" cy="206" r="16"/>
+    </g>
+    <g fill="#a878c0">
+      <circle cx="250" cy="146" r="5"/>
+      <circle cx="230" cy="160" r="5"/>
+      <circle cx="270" cy="160" r="5"/>
+    </g>
   </g>
 </svg>

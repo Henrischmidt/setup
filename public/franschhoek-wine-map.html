@@ -3,288 +3,298 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Franschhoek Wine Farms · Tasting Passport 🍷</title>
-<meta name="description" content="Every wine farm in the Franschhoek Valley on one interactive map. Mark the ones you've been to, the ones you want to go to, rate them and share your list." />
-
-<meta property="og:title" content="Franschhoek Wine Farms · Tasting Passport 🍷" />
-<meta property="og:description" content="Every wine farm in the Franschhoek Valley on one map. Been there, want to go, rate & share." />
+<title>WineAbout · Franschhoek</title>
+<meta name="description" content="WineAbout — every wine farm in the Franschhoek Valley. Been there, want to go, rate & share." />
+<meta property="og:title" content="WineAbout · Franschhoek Wine Farms" />
+<meta property="og:description" content="Every wine farm in the Franschhoek Valley — been there, want to go, rate & share." />
 <meta property="og:type" content="website" />
 
-<!-- PWA: add to home screen, app-like standalone -->
 <meta name="theme-color" content="#6b1f3a" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Wine Farms" />
+<meta name="apple-mobile-web-app-title" content="WineAbout" />
 <link rel="manifest" href="/wine-app.webmanifest" />
 <link rel="apple-touch-icon" href="/wine-icon.svg" />
 <link rel="icon" type="image/svg+xml" href="/wine-icon.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
   :root{
-    --wine:#6b1f3a; --wine-deep:#4a1226; --gold:#c69a4b; --gold-soft:#e3c989;
-    --red:#c0392b; --orange:#e08a2b; --green:#3e8e41;
-    --cream:#f6f0e6; --ink:#2b1820; --paper:#fbf7f0;
-    --line:rgba(107,31,58,.14); --shadow:0 10px 30px rgba(74,18,38,.14);
+    --wine:#6b1f3a; --wine-deep:#4a1226; --gold:#bd8b3c; --gold-soft:#e3c989;
+    --red:#c0392b; --orange:#dd8a2c; --green:#3f8a45;
+    --ink:#2b1820; --muted:#8a6f78; --paper:#faf6ef; --card:#ffffff;
+    --line:rgba(107,31,58,.12); --shadow:0 6px 22px rgba(74,18,38,.10);
+    --ease:cubic-bezier(.22,.85,.3,1);
   }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{
-    font-family:Inter,system-ui,sans-serif;color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at 80% -10%, #f3e6d6 0%, transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, #ece4d2 0%, transparent 55%),
-      var(--paper);
-    -webkit-font-smoothing:antialiased;
+    font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--paper);
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
   }
-  a{color:var(--wine)}
-  .wrap{max-width:1180px;margin:0 auto;padding:0 16px 64px}
-  body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.13em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 
-  /* ---------- Bottom app tab bar ---------- */
-  .tabbar{
-    position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;
-    background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(74,18,38,.10);
-    padding-bottom:env(safe-area-inset-bottom);
-  }
-  .tab{
-    flex:1;border:none;background:none;cursor:pointer;padding:9px 2px 8px;
-    display:flex;flex-direction:column;align-items:center;gap:3px;
-    font:600 10.5px Inter;color:#9a8088;transition:.14s;-webkit-tap-highlight-color:transparent;
-  }
-  .tab .ti{font-size:20px;line-height:1;filter:grayscale(.35);transition:.14s}
-  .tab.on{color:var(--wine)}
-  .tab.on .ti{filter:none;transform:translateY(-1px)}
-  .tab:active{transform:scale(.94)}
-  @media(min-width:760px){ .tabbar{max-width:520px;margin:0 auto;border-radius:18px 18px 0 0} }
+  .app{max-width:720px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+    background:radial-gradient(900px 420px at 90% -8%,#f3e6d6 0,transparent 60%) var(--paper);
+    padding-bottom:calc(66px + env(safe-area-inset-bottom))}
 
-  /* ---------- Hero ---------- */
-  header.hero{text-align:center;padding:30px 12px 6px}
-  .kicker{font:600 12px/1 Inter;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
-  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(36px,7vw,68px);line-height:.98;margin:0;color:var(--wine);letter-spacing:.5px}
-  h1 em{font-style:italic;color:var(--gold)}
-  .sub{margin:12px auto 0;max-width:560px;color:#7a5b66;font-size:clamp(14px,2.4vw,16px);line-height:1.5}
+  /* ---------- Top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:600;padding:calc(8px + env(safe-area-inset-top)) 14px 10px;
+    background:linear-gradient(180deg,rgba(250,246,239,.96) 72%,rgba(250,246,239,0));
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .brand img{width:30px;height:30px;border-radius:8px;box-shadow:var(--shadow)}
+  .brand .t{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;line-height:1;color:var(--wine)}
+  .brand .t em{font-style:italic;color:var(--gold)}
+  .brand .sc{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
 
-  /* ---------- Search (the focus, full width, top) ---------- */
-  .searchwrap{position:sticky;top:0;z-index:500;padding:14px 0 10px;background:linear-gradient(180deg,var(--paper) 70%,rgba(251,247,240,0))}
-  .search{position:relative;width:100%}
-  .search input{
-    width:100%;font:500 17px Inter;padding:17px 18px 17px 52px;border-radius:16px;
-    border:2px solid var(--line);background:#fff;color:var(--ink);box-shadow:var(--shadow);
-  }
-  .search input::placeholder{color:#b09aa2}
-  .search input:focus{outline:none;border-color:var(--gold)}
-  .search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);opacity:.55}
-  .search .clearx{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:#efe3d4;color:var(--wine);width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:none}
-  .search .clearx.show{display:block}
+  .search{position:relative;display:none}
+  body[data-screen="explore"] .search,body[data-screen="been"] .search,body[data-screen="want"] .search{display:block}
+  .search .si{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--wine);opacity:.6;font-size:18px}
+  .search input{width:100%;font:500 15px Inter;padding:12px 40px 12px 40px;border-radius:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);box-shadow:var(--shadow)}
+  .search input::placeholder{color:#b6a3aa}
+  .search input:focus{outline:none;border-color:var(--gold-soft)}
+  .search .cx{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:#efe3d4;color:var(--wine);width:26px;height:26px;border-radius:50%;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center}
+  .search .cx.show{display:flex}
 
-  /* ---------- How it works ---------- */
-  .howto{margin:8px auto 0;max-width:760px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:13px;color:#6a5560;line-height:1.55;box-shadow:var(--shadow)}
-  .howto b{color:var(--wine)}
-  .swatch{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin:0 2px;font-weight:600}
-  .swatch i{width:11px;height:11px;border-radius:50%;display:inline-block}
-
-  /* ---------- Progress ---------- */
-  .progress-card{margin:16px auto 0;max-width:760px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
-  .tallies{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .tally{flex:1;min-width:96px;text-align:center;border-radius:13px;padding:11px 8px;border:1.5px solid var(--line)}
-  .tally b{display:block;font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1}
-  .tally span{font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#8a6b76}
-  .tally.green{background:#eef6ec;border-color:rgba(62,142,65,.3)} .tally.green b{color:var(--green)}
-  .tally.orange{background:#fbf0e0;border-color:rgba(224,138,43,.35)} .tally.orange b{color:var(--orange)}
-  .tally.red{background:#fbe9e7;border-color:rgba(192,57,43,.3)} .tally.red b{color:var(--red)}
-  .bar{height:11px;border-radius:99px;background:#efe3d4;overflow:hidden;margin-top:13px;border:1px solid rgba(0,0,0,.04)}
-  .bar > i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .5s cubic-bezier(.2,.8,.2,1)}
-  .badge-line{margin-top:11px;font-size:13px;color:var(--green);font-weight:600;min-height:18px;text-align:center}
-
-  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
-  button.btn{font:600 13.5px Inter;cursor:pointer;border-radius:11px;padding:11px 16px;border:1px solid var(--line);background:#fff;color:var(--wine);transition:.15s}
-  button.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-  button.btn.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
-  button.btn.primary:hover{background:var(--wine-deep)}
-
-  /* ---------- Filters ---------- */
-  .filters{margin:22px 0 0;display:flex;flex-direction:column;gap:9px;align-items:center}
-  .filter-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .chip{font:600 13px Inter;cursor:pointer;border-radius:99px;padding:9px 14px;min-height:40px;border:1.5px solid var(--line);background:#fff;color:#7a5b66;transition:.15s;display:inline-flex;align-items:center;gap:7px}
-  .chip .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .arearow{display:none;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .arearow::-webkit-scrollbar{display:none}
+  body[data-screen="map"] .arearow,body[data-screen="explore"] .arearow,body[data-screen="been"] .arearow,body[data-screen="want"] .arearow{display:flex}
+  .chip{flex:0 0 auto;font:600 11.5px Inter;cursor:pointer;border-radius:99px;padding:6px 11px;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.18s var(--ease);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .chip .dot{width:8px;height:8px;border-radius:50%}
   .chip.on{color:#fff;border-color:transparent}
   .chip.on.c-town{background:var(--wine)} .chip.on.c-valley{background:#5a6b3b} .chip.on.c-drakenstein{background:#3f6fa0}
-  .chip.off{opacity:.45} .chip.off .dot{filter:grayscale(1)}
-  .chip.st.on.s-all{background:var(--wine)} .chip.st.on.s-none{background:var(--red)} .chip.st.on.s-want{background:var(--orange)} .chip.st.on.s-been{background:var(--green)}
-  .filter-hint{font-size:11.5px;color:#9a8088}
+  .chip.off{opacity:.5} .chip.off .dot{filter:grayscale(1)}
 
-  /* ---------- Map ---------- */
-  #map{height:clamp(360px,52vh,560px);width:100%;margin:18px 0 0;border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);z-index:0;scroll-margin-top:84px}
-  .list-head{scroll-margin-top:84px}
-  #map.map-offline{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#efe3d4,#f6f0e6)}
-  .map-msg{text-align:center;max-width:340px;padding:24px}
-  .map-msg-emoji{font-size:34px;margin-bottom:8px}
-  .map-msg b{display:block;font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--wine);margin-bottom:6px}
-  .map-msg span{font-size:13.5px;color:#7a5b66;line-height:1.5}
+  /* ---------- Screens ---------- */
+  main{flex:1;position:relative}
+  .screen{display:none;padding:12px 14px 8px;animation:fade .28s var(--ease)}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Map */
+  #map{height:calc(100vh - 280px);min-height:360px;width:100%;border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow);z-index:0}
+  #map.map-offline{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#efe3d4,#faf6ef)}
+  .map-msg{text-align:center;max-width:320px;padding:24px}
+  .map-msg .ico{width:34px;height:34px;color:var(--wine);margin-bottom:8px;stroke-width:1.6}
+  .map-msg b{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--wine);margin-bottom:5px}
+  .map-msg span{font-size:13px;color:var(--muted);line-height:1.5}
+  .legend{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:11px;font-size:11px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+
+  /* Leaflet popup */
   .leaflet-popup-content-wrapper{border-radius:14px}
   .leaflet-popup-content{margin:12px 14px;font-family:Inter}
   .pop-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;color:var(--wine);line-height:1}
-  .pop-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;letter-spacing:.04em;color:#5a6b3b;text-transform:uppercase}
-  .pop-fact{margin-top:7px;font-size:12.5px;color:#5a4751;line-height:1.45;max-width:230px}
-  .pop-note{margin-top:7px;font-size:11.5px;font-weight:600;color:#9a3b3b;line-height:1.4}
-  .pop-actions{display:flex;gap:6px;margin-top:10px}
-  .pop-actions button{flex:1;font:700 12px Inter;cursor:pointer;border:1.5px solid var(--line);border-radius:9px;padding:8px 4px;background:#fff}
+  .pop-tag{display:block;margin-top:5px;font-size:10.5px;font-weight:700;letter-spacing:.05em;color:#5a6b3b;text-transform:uppercase}
+  .pop-fact{margin-top:6px;font-size:12px;color:#5a4751;line-height:1.45;max-width:230px}
+  .pop-note{margin-top:6px;font-size:11px;font-weight:600;color:#9a3b3b;line-height:1.4}
+  .pop-actions{display:flex;gap:6px;margin-top:9px}
+  .pop-actions button{flex:1;font:700 11.5px Inter;cursor:pointer;border:1.5px solid var(--line);border-radius:9px;padding:8px 4px;background:#fff;color:var(--muted);display:inline-flex;gap:4px;align-items:center;justify-content:center}
+  .pop-actions .ico{width:13px;height:13px}
   .pop-actions button.been.on{background:var(--green);color:#fff;border-color:var(--green)}
   .pop-actions button.want.on{background:var(--orange);color:#fff;border-color:var(--orange)}
-  .pop-dir{display:block;margin-top:8px;font-size:12px;font-weight:600;color:#5a6b3b;text-decoration:none}
+  .pop-dir{display:inline-flex;gap:5px;align-items:center;margin-top:8px;font-size:12px;font-weight:600;color:#5a6b3b;text-decoration:none}
+  .pop-dir .ico{width:13px;height:13px}
 
   .pin{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
-  .pin > span{transform:rotate(45deg);font-size:12px;line-height:1;color:#fff;font-weight:700}
+  .pin .ico{transform:rotate(45deg);width:13px;height:13px;color:#fff;stroke-width:3}
 
-  /* ---------- Legend ---------- */
-  .legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:12.5px;color:#7a5b66}
-  .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
-
-  /* ---------- List ---------- */
-  .list-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:34px 0 4px;flex-wrap:wrap}
-  .list-head h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:30px;color:var(--wine);margin:0}
-  .cluster{margin-top:24px}
-  .cluster > h3{font:600 12px Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 10px;display:flex;align-items:center;gap:10px}
+  /* ---------- Lists ---------- */
+  .screen-head{margin:2px 0 12px}
+  .screen-head h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;color:var(--wine);margin:0;display:flex;align-items:center;gap:9px}
+  .screen-head h2 .ico{width:22px;height:22px}
+  .screen-head p{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
+  .cluster{margin-bottom:18px}
+  .cluster > h3{font:700 11px Inter;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 9px;display:flex;align-items:center;gap:9px}
   .cluster > h3:after{content:"";flex:1;height:1px;background:var(--line)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
 
-  .farm{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px 13px;position:relative;overflow:hidden;transition:.16s;border-left:5px solid var(--st,#c0392b)}
+  .farm{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;position:relative;transition:.2s var(--ease);border-left:4px solid var(--st,var(--red))}
   .farm:hover{box-shadow:var(--shadow)}
-  .farm.been{background:linear-gradient(180deg,#f5faf3,#fff)}
-  .farm.want{background:linear-gradient(180deg,#fdf6ea,#fff)}
-  .farm.closed{opacity:.72}
+  .farm.been{background:linear-gradient(180deg,#f6fbf4,#fff)}
+  .farm.want{background:linear-gradient(180deg,#fef7ec,#fff)}
+  .farm.closed{opacity:.7}
   .name-row{display:flex;align-items:center;gap:8px}
-  .state-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;background:var(--st,#c0392b)}
-  .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:20px;line-height:1.05;color:var(--wine);cursor:pointer}
+  .state-dot{width:11px;height:11px;border-radius:50%;background:var(--st,var(--red));flex:0 0 auto}
+  .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;line-height:1.05;color:var(--wine);cursor:pointer}
   .farm.closed .name{text-decoration:line-through;text-decoration-color:rgba(154,59,59,.5)}
-  .meta{margin-top:3px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#5a6b3b}
-  .fact{margin-top:6px;font-size:12.5px;color:#6a5560;line-height:1.4}
-  .spill{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+  .meta{margin-top:3px;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#5a6b3b}
+  .fact{margin-top:6px;font-size:12px;color:#6a5560;line-height:1.4}
+  .spill{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+  .spill .ico{width:11px;height:11px}
   .spill.appt{background:#eef2e2;color:#516b1f} .spill.closed{background:#f3e0e0;color:#9a3b3b}
 
-  /* two-state buttons */
   .statebtns{display:flex;gap:8px;margin-top:11px}
-  .statebtns button{flex:1;font:700 13px Inter;cursor:pointer;border-radius:10px;padding:11px 8px;border:1.5px solid var(--line);background:#fff;color:#6a5560;transition:.14s;min-height:44px;-webkit-tap-highlight-color:transparent}
+  .statebtns button{flex:1;font:700 12.5px Inter;cursor:pointer;border-radius:10px;padding:10px 6px;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.16s var(--ease);min-height:42px;display:inline-flex;gap:6px;align-items:center;justify-content:center}
+  .statebtns .ico{width:15px;height:15px}
   .statebtns button:active{transform:scale(.97)}
   .statebtns button.been.on{background:var(--green);color:#fff;border-color:var(--green)}
   .statebtns button.want.on{background:var(--orange);color:#fff;border-color:var(--orange)}
 
-  /* stars + note (shown when been or want) */
-  .extra{margin-top:10px;display:none}
+  .extra{margin-top:9px;display:none}
   .farm.been .extra,.farm.want .extra{display:block}
-  .stars{display:inline-flex;gap:2px;margin-left:-6px}
-  .stars button{background:none;border:none;cursor:pointer;line-height:1;font-size:25px;color:#d9cab0;padding:5px 6px;min-width:42px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
-  .stars button:active{transform:scale(.9)} .stars button.on{color:var(--gold)}
-  .rate-label{font-size:11px;color:#9a8088}
-  .note{width:100%;margin-top:6px;font:500 13px Inter;padding:9px 11px;border-radius:10px;border:1.5px solid var(--line);background:#fdfaf5;color:var(--ink);resize:vertical;min-height:38px}
-  .note:focus{outline:none;border-color:var(--gold)}
+  .stars{display:inline-flex;gap:1px;margin-left:-4px}
+  .stars button{background:none;border:none;cursor:pointer;padding:5px;min-width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+  .stars .ico{width:23px;height:23px;fill:none;stroke:#d9cab0;stroke-width:1.5;transition:.14s}
+  .stars button.on .ico{fill:var(--gold);stroke:var(--gold)}
+  .stars button:active{transform:scale(.88)}
+  .note{width:100%;margin-top:5px;font:500 13px Inter;padding:9px 11px;border-radius:10px;border:1.5px solid var(--line);background:#fdfaf5;color:var(--ink);resize:vertical;min-height:38px}
+  .note:focus{outline:none;border-color:var(--gold-soft)}
 
-  .actions{display:flex;gap:14px;align-items:center;margin-top:10px;flex-wrap:wrap}
-  .locate,.directions{font-size:11.5px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:inline-flex;gap:4px;align-items:center;text-decoration:none}
+  .actions{display:flex;gap:16px;align-items:center;margin-top:9px}
+  .actions a,.actions span{font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;gap:5px;align-items:center;text-decoration:none}
+  .actions .ico{width:14px;height:14px}
   .locate{color:var(--gold)} .directions{color:#5a6b3b}
-  .locate:hover,.directions:hover{text-decoration:underline}
 
-  footer{margin-top:46px;text-align:center;font-size:12px;color:#9a8088;line-height:1.7}
-  footer a{color:var(--gold)}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:var(--wine);color:#fff;padding:12px 20px;border-radius:12px;font:600 14px Inter;box-shadow:var(--shadow);z-index:9999;opacity:0;transition:.3s}
-  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;line-height:1.6}
+  .empty .ico{width:30px;height:30px;color:var(--gold-soft);margin-bottom:8px;stroke-width:1.5;display:block;margin-left:auto;margin-right:auto}
+
+  /* ---------- You screen ---------- */
+  .tallies{display:flex;gap:9px}
+  .tally{flex:1;text-align:center;border-radius:14px;padding:13px 8px;border:1.5px solid var(--line);background:#fff}
+  .tally b{display:block;font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1}
+  .tally span{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);margin-top:3px;display:block}
+  .tally.green{background:#eef6ec} .tally.green b{color:var(--green)}
+  .tally.orange{background:#fbf1e3} .tally.orange b{color:var(--orange)}
+  .tally.red{background:#fbe9e7} .tally.red b{color:var(--red)}
+  .bar{height:9px;border-radius:99px;background:#efe3d4;overflow:hidden;margin:14px 0 9px;border:1px solid rgba(0,0,0,.04)}
+  .bar > i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .6s var(--ease)}
+  .badge{font-size:13px;color:var(--green);font-weight:600;text-align:center;min-height:18px}
+  .youcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+  .bigbtn{width:100%;font:700 14px Inter;cursor:pointer;border-radius:12px;padding:13px;border:1.5px solid var(--line);background:#fff;color:var(--wine);display:inline-flex;gap:8px;align-items:center;justify-content:center;margin-top:10px;transition:.16s var(--ease)}
+  .bigbtn .ico{width:17px;height:17px}
+  .bigbtn:active{transform:scale(.99)}
+  .bigbtn.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
+  .install{font-size:12.5px;color:var(--muted);line-height:1.55;background:#fff;border:1px dashed var(--line);border-radius:14px;padding:13px 15px;margin-bottom:14px}
+  .install b{color:var(--wine)}
+  .btn-reset{width:100%;font:600 13px Inter;cursor:pointer;border-radius:12px;padding:12px;border:1.5px solid rgba(192,57,43,.3);background:#fff;color:var(--red);display:inline-flex;gap:7px;align-items:center;justify-content:center;transition:.16s var(--ease)}
+  .btn-reset .ico{width:15px;height:15px}
+  .btn-reset:active{transform:scale(.99)}
+  footer{margin-top:16px;text-align:center;font-size:11px;color:#a08e95;line-height:1.7}
+
+  /* ---------- Bottom tab bar ---------- */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;max-width:720px;margin:0 auto;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--line);box-shadow:0 -5px 22px rgba(74,18,38,.09);padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;border:none;background:none;cursor:pointer;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 10px Inter;color:#a08e95;transition:.16s var(--ease)}
+  .tab .ico{width:21px;height:21px;stroke-width:1.9;transition:.16s var(--ease)}
+  .tab.on{color:var(--wine)} .tab.on .ico{transform:translateY(-1px)}
+  .tab .badge-dot{position:absolute;margin:-3px 0 0 14px;background:var(--green);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:99px;display:none;align-items:center;justify-content:center;padding:0 3px}
+  .tab.has .badge-dot{display:inline-flex}
+  @media(min-width:760px){.tabbar{border-radius:18px 18px 0 0}}
+
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:var(--wine);color:#fff;padding:11px 18px;border-radius:12px;font:600 13.5px Inter;box-shadow:var(--shadow);z-index:9999;opacity:0;transition:.28s var(--ease);pointer-events:none}
+  .toast.show{transform:translateX(-50%);opacity:1}
 </style>
 </head>
-<body>
-<div class="wrap">
+<body data-screen="map">
+<div class="app">
 
-  <header class="hero">
-    <div class="kicker">Cape Winelands · South Africa</div>
-    <h1>🍇 Franschhoek <em>Wine Farms</em></h1>
-    <p class="sub">Every farm in the valley on one map. Mark where you've <b>been</b>, where you <b>want to go</b>, rate them and share your list.</p>
-  </header>
-
-  <!-- SEARCH: the focus, full width, sticky at top -->
-  <div class="searchwrap">
+  <!-- Sticky top bar: brand + search + area filters -->
+  <div class="topbar">
+    <div class="brand">
+      <img src="/wine-icon.svg" alt="WineAbout"/>
+      <span class="t">Wine<em>About</em></span>
+      <span class="sc" id="screenName">Map</span>
+    </div>
     <div class="search">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b1f3a" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="search" type="search" placeholder="Search 53 wine farms…" autocomplete="off" />
-      <button class="clearx" id="clearx" aria-label="Clear">✕</button>
+      <svg class="ico si" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Search the valley…" autocomplete="off" />
+      <button class="cx" id="clearx" aria-label="Clear">✕</button>
+    </div>
+    <div class="arearow" id="areaFilters">
+      <button class="chip c-town on" data-cluster="town"><span class="dot" style="background:#6b1f3a"></span>Town &amp; Pass</button>
+      <button class="chip c-valley on" data-cluster="valley"><span class="dot" style="background:#5a6b3b"></span>Happy Valley</button>
+      <button class="chip c-drakenstein on" data-cluster="drakenstein"><span class="dot" style="background:#3f6fa0"></span>Groot Drakenstein</button>
     </div>
   </div>
 
-  <div class="howto">
-    <b>How it works —</b> tap a button on any farm:
-    <span class="swatch"><i style="background:var(--green)"></i>Been here</span> ·
-    <span class="swatch"><i style="background:var(--orange)"></i>Want to go</span> ·
-    <span class="swatch"><i style="background:var(--red)"></i>not yet</span>.
-    Give it ⭐ and leave a note. Everything saves on this device — hit <b>Share</b> to send your whole list.
-  </div>
+  <main>
+    <!-- MAP -->
+    <section class="screen on" id="screen-map">
+      <div id="map"></div>
+      <div class="legend">
+        <span><i style="background:var(--green)"></i>Been</span>
+        <span><i style="background:var(--orange)"></i>Want to go</span>
+        <span><i style="background:var(--red)"></i>Not yet</span>
+        <span>By appointment</span>
+        <span>Closed (2026)</span>
+      </div>
+    </section>
 
-  <div class="progress-card">
-    <div class="tallies">
-      <div class="tally green"><b id="tBeen">0</b><span>🟢 Been there</span></div>
-      <div class="tally orange"><b id="tWant">0</b><span>🟠 Want to go</span></div>
-      <div class="tally red"><b id="tNone">0</b><span>🔴 Not yet</span></div>
-    </div>
-    <div class="bar"><i id="barFill"></i></div>
-    <div class="badge-line" id="badge"></div>
-    <div class="controls">
-      <button class="btn primary" id="shareBtn">🔗 Share my list</button>
-      <button class="btn" id="randomBtn">🎲 Where to next?</button>
-      <button class="btn" id="resetBtn">↺ Reset</button>
-    </div>
-  </div>
+    <!-- EXPLORE -->
+    <section class="screen" id="screen-explore">
+      <div class="screen-head"><h2>All farms</h2><p id="exploreCount"></p></div>
+      <div id="list-explore"></div>
+    </section>
 
-  <div class="filters">
-    <div class="filter-row" id="areaFilters">
-      <button class="chip c-town on" data-cluster="town"><span class="dot" style="background:#6b1f3a"></span>Town &amp; the Pass</button>
-      <button class="chip c-valley on" data-cluster="valley"><span class="dot" style="background:#5a6b3b"></span>Happy Valley &amp; Robertsvlei</button>
-      <button class="chip c-drakenstein on" data-cluster="drakenstein"><span class="dot" style="background:#3f6fa0"></span>Groot Drakenstein &amp; Simondium</button>
-    </div>
-    <div class="filter-hint" id="filterHint"></div>
-  </div>
+    <!-- BEEN -->
+    <section class="screen" id="screen-been">
+      <div class="screen-head"><h2><svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg> Been there</h2><p>The farms you've tasted at. Search above to find &amp; tick fast.</p></div>
+      <div id="list-been"></div>
+    </section>
 
-  <div id="map"></div>
-  <div class="legend">
-    <span><i style="background:var(--green)"></i>Been there</span>
-    <span><i style="background:var(--orange)"></i>Want to go</span>
-    <span><i style="background:var(--red)"></i>Not been yet</span>
-    <span>📞 By appointment</span>
-    <span>⚠ Tastings closed (updated 2026)</span>
-  </div>
+    <!-- WANT -->
+    <section class="screen" id="screen-want">
+      <div class="screen-head"><h2><svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Want to go</h2><p>Your hit-list for next time.</p></div>
+      <div id="list-want"></div>
+    </section>
 
-  <div class="list-head" id="listAnchor">
-    <h2 id="listTitle">All farms</h2>
-  </div>
-  <div id="listRoot"></div>
-
-  <footer>
-    Hand-mapped tasting guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — check tasting hours &amp; book ahead.<br/>
-    Your marks, ⭐ ratings &amp; notes save privately in this browser; your marks &amp; ratings also travel in the Share link. Built for the road 🍷
-  </footer>
+    <!-- YOU -->
+    <section class="screen" id="screen-you">
+      <div class="screen-head"><h2>Your passport</h2><p id="youSub"></p></div>
+      <div class="youcard">
+        <div class="tallies">
+          <div class="tally green"><b id="tBeen">0</b><span>Been</span></div>
+          <div class="tally orange"><b id="tWant">0</b><span>Want to go</span></div>
+          <div class="tally red"><b id="tNone">0</b><span>Not yet</span></div>
+        </div>
+        <div class="bar"><i id="barFill"></i></div>
+        <div class="badge" id="badge"></div>
+        <button class="bigbtn primary" id="shareBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg> Share my list</button>
+        <button class="bigbtn" id="randomBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg> Surprise me — where next?</button>
+      </div>
+      <div class="install"><b>Add it to your home screen</b> — tap your browser's Share button, then <b>“Add to Home Screen”</b>. It opens full-screen, just like an app.</div>
+      <button class="btn-reset" id="resetBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 2v6h6M3.5 13a9 9 0 1 0 2.6-6.4L3 8"/></svg> Reset everything</button>
+      <footer>Hand-mapped guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — check hours &amp; book ahead. Saved privately on this device 🍷</footer>
+    </section>
+  </main>
 </div>
 
-<!-- Bottom app tab bar -->
+<!-- Bottom tab bar -->
 <nav class="tabbar" id="tabbar">
-  <button class="tab on" data-tab="map"><span class="ti">🗺️</span><span>Map</span></button>
-  <button class="tab" data-tab="all"><span class="ti">🍷</span><span>All</span></button>
-  <button class="tab" data-tab="been"><span class="ti">🟢</span><span>Been</span></button>
-  <button class="tab" data-tab="want"><span class="ti">🟠</span><span>Want</span></button>
-  <button class="tab" data-tab="share"><span class="ti">🔗</span><span>Share</span></button>
+  <button class="tab on" data-tab="map"><svg class="ico" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></button>
+  <button class="tab" data-tab="explore"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Explore</span></button>
+  <button class="tab" data-tab="been"><span class="badge-dot" id="beenDot">0</span><svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg><span>Been</span></button>
+  <button class="tab" data-tab="want"><span class="badge-dot" id="wantDot" style="background:var(--orange)">0</span><svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Want</span></button>
+  <button class="tab" data-tab="you"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>You</span></button>
 </nav>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ====================== DATA ======================
-   cluster: town | valley | drakenstein. Coordinates approximate. */
+/* ====================== ICONS ====================== */
+const IC = {
+  check:'<svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg>',
+  bookmark:'<svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
+  star:'<svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></svg>',
+  nav:'<svg class="ico" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
+  pin:'<svg class="ico" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  phone:'<svg class="ico" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
+  warn:'<svg class="ico" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  empty:'<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+};
+
+/* ====================== DATA ====================== */
 const FARMS = [
-  // --- Town & the Pass ---
   {id:'haute-cabriere', name:'Haute Cabrière', cluster:'town', lat:-33.9143, lng:19.1278, tag:'Pierre Jourdan MCC', fact:'Sabrage demos & the home of Pierre Jourdan Cap Classique at the foot of the Franschhoek Pass.'},
   {id:'la-petite-ferme', name:'La Petite Ferme', cluster:'town', lat:-33.9117, lng:19.1235, tag:'Vineyard restaurant', fact:'Jaw-dropping valley views and one of the most-loved lunch terraces in town.'},
   {id:'mont-rochelle', name:'Mont Rochelle', cluster:'town', lat:-33.9168, lng:19.1150, tag:"Branson's estate", fact:"Richard Branson's vineyard & country hotel perched above the village."},
@@ -299,8 +309,6 @@ const FARMS = [
   {id:'grande-provence', name:'Grande Provence', cluster:'town', lat:-33.8958, lng:19.1003, tag:'Art & wine', fact:'Historic 1694 estate with a sculpture garden, gallery and fine-dining restaurant.'},
   {id:'franschhoek-cellar', name:'Franschhoek Cellar', cluster:'town', lat:-33.9013, lng:19.0935, tag:'Relaxed & central', fact:'Easy-going tastings and lawns right on the edge of the village.'},
   {id:'my-wyn', name:'My Wyn', cluster:'town', lat:-33.9060, lng:19.1110, tag:'Garagiste', fact:'Hand-crafted micro-batch wines from a true garagiste winemaker.'},
-
-  // --- Happy Valley & Robertsvlei ---
   {id:'la-motte', name:'La Motte', cluster:'valley', lat:-33.8997, lng:19.0853, tag:'Historic Rupert estate', fact:'Manicured 1695 estate with a museum, hiking trail and the Pierneef à La Motte restaurant.'},
   {id:'leopards-leap', name:"Leopard's Leap", cluster:'valley', lat:-33.9008, lng:19.0818, tag:'Family vineyards', fact:'Modern tasting hall, conservation focus and famously generous food-and-wine pairings.'},
   {id:'rickety-bridge', name:'Rickety Bridge', cluster:'valley', lat:-33.8957, lng:19.0928, tag:'Since 1797', fact:'Between the Dassenberg and the river; estate cellar dating back to 1797.'},
@@ -320,8 +328,6 @@ const FARMS = [
   {id:'paserene', name:'Paserene', cluster:'valley', lat:-33.8975, lng:19.0830, tag:'Boutique terroir', fact:'Martin Smith’s acclaimed boutique winery — a glass tasting lounge shaped like a swallow’s nest over a dam.'},
   {id:'klein-goederust', name:'Klein Goederust', cluster:'valley', lat:-33.8950, lng:19.0705, tag:'Black-owned estate', fact:'The first fully Black-owned winery in Franschhoek, with a warm tasting deck on the R45.'},
   {id:'atlas-swift', name:'Atlas Swift', cluster:'valley', lat:-33.8965, lng:19.0945, tag:'Urban-style cellar', fact:'Contemporary small-batch label with a relaxed, design-led tasting experience.'},
-
-  // --- Groot Drakenstein & Simondium ---
   {id:'boschendal', name:'Boschendal', cluster:'drakenstein', lat:-33.8478, lng:18.9762, tag:'Est. 1685', fact:"One of SA's oldest farms — Cape Dutch manor, farm-to-table dining and the Werf garden."},
   {id:'anthonij-rupert', name:'Anthonij Rupert', cluster:'drakenstein', lat:-33.8682, lng:19.0148, tag:'Premium Cape flagships', fact:'The Rupert family’s flagship cellar on the historic L’Ormarins estate — serious, age-worthy wines.'},
   {id:'lormarins', name:'L’Ormarins', cluster:'drakenstein', lat:-33.8635, lng:19.0080, tag:'Franschhoek Motor Museum', fact:'Historic R45 estate and home of the legendary Franschhoek Motor Museum; pours Terra del Capo & Cap Classique.'},
@@ -335,8 +341,6 @@ const FARMS = [
   {id:'solms-delta', name:'Solms-Delta', cluster:'drakenstein', lat:-33.8503, lng:18.9742, tag:'Reopened 2025', fact:'Historic heritage farm — reopened in 2025 as Solms-Delta Wine Co. under new ownership, with tastings & Fyndraai restaurant returning.'},
   {id:'bellingham', name:'Bellingham', cluster:'drakenstein', lat:-33.8550, lng:18.9650, tag:'The Bernard Series', fact:'Long-standing label with a wide range from everyday pours to the Bernard Series.'},
   {id:'graham-beck', name:'Graham Beck', cluster:'drakenstein', lat:-33.8800, lng:19.0520, tag:'Cap Classique icon', fact:"Legendary bubbly house — the MCC poured at Mandela's inauguration and Obama's election night.", status:'closed', note:'Franschhoek tasting room has closed — Graham Beck now pours at its Robertson estate.'},
-
-  // --- Upper village ---
   {id:'la-petite-vigne', name:'La Petite Vigne', cluster:'town', lat:-33.9080, lng:19.1050, tag:'Boutique parcels', fact:'Tiny boutique label crafted in small, careful parcels.'},
   {id:'von-ortloff', name:'Von Ortloff', cluster:'town', lat:-33.9000, lng:19.1010, tag:'Precise Chardonnay', fact:'Appointment-only family cellar known for crisp Chardonnay and elegant blends.', status:'appt'},
   {id:'la-chaumiere', name:'La Chaumière', cluster:'town', lat:-33.9092, lng:19.1130, tag:'French country', fact:'Intimate in-town wine spot with a relaxed French-country feel.', status:'closed', note:'No longer open to the public for tastings.'},
@@ -345,156 +349,86 @@ const FARMS = [
   {id:'blueberry-hill', name:'Blueberry Hill', cluster:'town', lat:-33.9180, lng:19.1150, tag:'Berries & views', fact:'Laid-back farm pairing its wines with namesake berries and big valley views.'},
   {id:'haut-espoir', name:'Haut Espoir', cluster:'town', lat:-33.9280, lng:19.1000, tag:'Sustainable & high', fact:'Sustainability-minded boutique farm high on the southern slopes.'},
 ];
-
 const CLUSTERS = {
-  town:        {label:'Franschhoek Town & the Pass', color:'#6b1f3a'},
-  valley:      {label:'Happy Valley & Robertsvlei',   color:'#5a6b3b'},
-  drakenstein: {label:'Groot Drakenstein & Simondium',color:'#3f6fa0'},
+  town:{label:'Franschhoek Town & the Pass', color:'#6b1f3a'},
+  valley:{label:'Happy Valley & Robertsvlei', color:'#5a6b3b'},
+  drakenstein:{label:'Groot Drakenstein & Simondium', color:'#3f6fa0'},
 };
-const STATE = {
-  none:{color:'#c0392b', label:'Not been'},
-  want:{color:'#e08a2b', label:'Want to go'},
-  been:{color:'#3e8e41', label:'Been there'},
-};
+const STATE = { none:{color:'#c0392b'}, want:{color:'#dd8a2c'}, been:{color:'#3f8a45'} };
 
 /* ====================== STATE + STORAGE ====================== */
-const STORE_KEY = 'fhk-wine-passport-v3';
-let states = {};   // { id: 'want' | 'been' }
-let ratings = {};  // { id: 1..5 }
-let notes = {};    // { id: 'text' }
+const STORE_KEY='fhk-wine-passport-v3';
+let states={}, ratings={}, notes={};
 loadState();
-
 function loadState(){
-  // shared link wins: #s=id.b_id.w & r=id.4_id.5
   try{
-    const p = new URLSearchParams(location.hash.slice(1));
-    if(p.get('s') || p.get('r')){
-      (p.get('s')||'').split('_').filter(Boolean).forEach(pair=>{
-        const [id,c]=pair.split('.'); if(id&&c) states[id]= c==='b'?'been':'want';
-      });
-      (p.get('r')||'').split('_').filter(Boolean).forEach(pair=>{
-        const [id,n]=pair.split('.'); if(id&&n){ ratings[id]=+n; if(!states[id]) states[id]='been'; }
-      });
+    const p=new URLSearchParams(location.hash.slice(1));
+    if(p.get('s')||p.get('r')){
+      (p.get('s')||'').split('_').filter(Boolean).forEach(x=>{const[id,c]=x.split('.'); if(id&&c) states[id]=c==='b'?'been':'want';});
+      (p.get('r')||'').split('_').filter(Boolean).forEach(x=>{const[id,n]=x.split('.'); if(id&&n){ratings[id]=+n; if(!states[id])states[id]='been';}});
       save(); return;
     }
   }catch(e){}
   try{
-    const raw = localStorage.getItem(STORE_KEY);
-    if(raw){ const d=JSON.parse(raw); states=d.states||{}; ratings=d.ratings||{}; notes=d.notes||{}; return; }
-    // --- migrate earlier saves so individual progress is never lost ---
-    const v2 = JSON.parse(localStorage.getItem('fhk-wine-passport-v2')||'null');
-    if(v2 && (v2.visited || v2.ratings)){
-      (v2.visited||[]).forEach(id=>{ states[id]='been'; });
-      ratings = v2.ratings||{};
-      save(); return;
-    }
-    const v1 = JSON.parse(localStorage.getItem('fhk-wine-passport-v1')||'null');
-    if(Array.isArray(v1)){ v1.forEach(id=>{ states[id]='been'; }); save(); return; }
+    const raw=localStorage.getItem(STORE_KEY);
+    if(raw){const d=JSON.parse(raw); states=d.states||{}; ratings=d.ratings||{}; notes=d.notes||{}; return;}
+    const v2=JSON.parse(localStorage.getItem('fhk-wine-passport-v2')||'null');
+    if(v2&&(v2.visited||v2.ratings)){ (v2.visited||[]).forEach(id=>states[id]='been'); ratings=v2.ratings||{}; save(); return; }
+    const v1=JSON.parse(localStorage.getItem('fhk-wine-passport-v1')||'null');
+    if(Array.isArray(v1)){ v1.forEach(id=>states[id]='been'); save(); return; }
   }catch(e){}
 }
-function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({states,ratings,notes})); }catch(e){} }
+function save(){ try{localStorage.setItem(STORE_KEY,JSON.stringify({states,ratings,notes}));}catch(e){} }
 function stOf(id){ return states[id]||'none'; }
-function colorFor(f){ return STATE[stOf(f.id)].color; }
-function mapsUrl(f){ return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.name+', Franschhoek, South Africa')}`; }
 function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`; }
-function starsHtml(f, cls){
-  const r = ratings[f.id]||0; let h=`<div class="${cls}" data-id="${f.id}">`;
-  for(let i=1;i<=5;i++) h+=`<button data-star="${i}" class="${i<=r?'on':''}" title="${i}★">★</button>`;
-  return h+'</div>';
-}
 
-/* ====================== FILTER STATE ====================== */
-const activeClusters = new Set(Object.keys(CLUSTERS));
-let statusFilter = 'all';   // all | none | want | been
-let searchQ = '';
-function isVisible(f){
-  if(!activeClusters.has(f.cluster)) return false;
-  if(statusFilter!=='all' && stOf(f.id)!==statusFilter) return false;
-  if(searchQ && !(f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ))) return false;
-  return true;
-}
+/* ====================== FILTER ====================== */
+const activeClusters=new Set(Object.keys(CLUSTERS));
+let searchQ='';
+function matchSearch(f){ return !searchQ || f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ); }
+function listVisible(f,status){ return activeClusters.has(f.cluster) && (status==='all'||stOf(f.id)===status) && matchSearch(f); }
+function mapVisible(f){ return activeClusters.has(f.cluster) && matchSearch(f); }
 
 /* ====================== MAP ====================== */
-const MAP_OK = (typeof L !== 'undefined') && (navigator.onLine !== false);
-const markers = {};
-let map = null;
-function pinIcon(f){
-  const st = stOf(f.id);
-  const glyph = st==='been' ? '✓' : st==='want' ? '★' : '';
-  return L.divIcon({ className:'', html:`<div class="pin" style="background:${STATE[st].color}"><span>${glyph}</span></div>`,
-    iconSize:[26,26], iconAnchor:[13,24], popupAnchor:[0,-22] });
-}
-function showMapFallback(){
-  const el=document.getElementById('map'); el.classList.add('map-offline');
-  el.innerHTML=`<div class="map-msg"><div class="map-msg-emoji">🍷🗺️</div>
-    <b>Map needs a connection</b>
-    <span>The interactive map couldn't load — you may be offline. Your full list below still works perfectly. Reconnect &amp; refresh to drop the pins.</span></div>`;
-}
-if(MAP_OK){
-  try{
-    map = L.map('map',{scrollWheelZoom:false}).setView([-33.885, 19.04], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      {attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19}).addTo(map);
-    map.on('click',()=>map.scrollWheelZoom.enable());
-    FARMS.forEach(f=>{
-      const m=L.marker([f.lat,f.lng],{icon:pinIcon(f)}).addTo(map);
-      m.bindPopup(popupHtml(f)); m.on('popupopen',()=>wirePopup(f)); markers[f.id]=m;
-    });
-  }catch(e){ map=null; showMapFallback(); }
-}else{ showMapFallback(); }
+const MAP_OK=(typeof L!=='undefined')&&(navigator.onLine!==false);
+const markers={}; let map=null;
+function pinIcon(f){ const st=stOf(f.id); const g=st==='been'?'<svg class="ico" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg>':st==='want'?'<svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>':'';
+  return L.divIcon({className:'',html:`<div class="pin" style="background:${STATE[st].color}">${g}</div>`,iconSize:[26,26],iconAnchor:[13,24],popupAnchor:[0,-22]}); }
+function showMapFallback(){ const el=document.getElementById('map'); el.classList.add('map-offline');
+  el.innerHTML=`<div class="map-msg">${IC.pin}<b>Map needs a connection</b><span>You may be offline — the Explore, Been &amp; Want lists below still work perfectly. Reconnect &amp; reopen to drop the pins.</span></div>`; }
+if(MAP_OK){ try{
+  map=L.map('map',{scrollWheelZoom:false,zoomControl:true}).setView([-33.885,19.04],12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}).addTo(map);
+  map.on('click',()=>map.scrollWheelZoom.enable());
+  FARMS.forEach(f=>{ const m=L.marker([f.lat,f.lng],{icon:pinIcon(f)}).addTo(map); m.bindPopup(popupHtml(f)); m.on('popupopen',()=>wirePopup(f)); markers[f.id]=m; });
+}catch(e){ map=null; showMapFallback(); } } else { showMapFallback(); }
 
-function popupHtml(f){
-  const st=stOf(f.id);
+function popupHtml(f){ const st=stOf(f.id);
   return `<div>
     <div class="pop-name">${f.name}</div>
-    <div class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}</div>
+    <span class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}</span>
     <div class="pop-fact">${f.fact}</div>
-    ${f.status==='closed'?'<div class="pop-note">⚠ '+(f.note||'Tastings closed.')+'</div>':''}
-    ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">📞 By appointment only.</div>':''}
-    ${starsHtml(f,'stars')}
+    ${f.status==='closed'?'<div class="pop-note">'+IC.warn+' '+(f.note||'Tastings closed.')+'</div>':''}
+    ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">'+IC.phone+' By appointment only.</div>':''}
+    ${starsHtml(f)}
     <div class="pop-actions">
-      <button class="been ${st==='been'?'on':''}" data-act="been" data-id="${f.id}">✓ Been</button>
-      <button class="want ${st==='want'?'on':''}" data-act="want" data-id="${f.id}">★ Want to go</button>
+      <button class="been ${st==='been'?'on':''}" data-act="been" data-id="${f.id}">${IC.check} Been</button>
+      <button class="want ${st==='want'?'on':''}" data-act="want" data-id="${f.id}">${IC.bookmark} Want</button>
     </div>
-    <a class="pop-dir" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Directions in Google Maps →</a>
-  </div>`;
-}
+    <a class="pop-dir" href="${dirUrl(f)}" target="_blank" rel="noopener">${IC.nav} Directions</a>
+  </div>`; }
 function wirePopup(f){
-  document.querySelectorAll(`.pop-actions button[data-id="${f.id}"]`).forEach(b=>{
-    b.onclick=()=>{ setState(f.id, b.dataset.act); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); };
-  });
+  document.querySelectorAll(`.pop-actions button[data-id="${f.id}"]`).forEach(b=>b.onclick=()=>{ setState(f.id,b.dataset.act); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); });
   const sb=document.querySelector(`.leaflet-popup .stars[data-id="${f.id}"]`);
   if(sb) sb.querySelectorAll('button').forEach(b=>b.onclick=()=>{ rate(f.id,+b.dataset.star); markers[f.id].setPopupContent(popupHtml(f)); wirePopup(f); });
 }
+function filterMapMarkers(){ FARMS.forEach(f=>{ const m=markers[f.id]; if(!m||!map) return; const on=mapVisible(f), has=map.hasLayer(m); if(on&&!has)m.addTo(map); else if(!on&&has)map.removeLayer(m); }); }
 
-/* ====================== LIST ====================== */
-const listRoot=document.getElementById('listRoot');
-function renderList(){
-  listRoot.innerHTML=''; let shown=0;
-  Object.entries(CLUSTERS).forEach(([key,info])=>{
-    const items=FARMS.filter(f=>f.cluster===key && isVisible(f));
-    if(!items.length) return; shown+=items.length;
-    const sec=document.createElement('div'); sec.className='cluster';
-    sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`;
-    const grid=document.createElement('div'); grid.className='grid';
-    items.forEach(f=>grid.appendChild(farmCard(f))); sec.appendChild(grid); listRoot.appendChild(sec);
-  });
-  if(!shown) listRoot.innerHTML='<p style="text-align:center;color:#9a8088;padding:30px 0">No farms match — try a different filter or clear the search.</p>';
-}
-function applyFilters(){
-  FARMS.forEach(f=>{ const m=markers[f.id]; if(!m) return;
-    const on=isVisible(f), has=map&&map.hasLayer(m);
-    if(on&&!has) m.addTo(map); else if(!on&&has) map.removeLayer(m); });
-  renderList();
-  const total=FARMS.filter(isVisible).length;
-  document.getElementById('filterHint').textContent=`Showing ${total} of ${FARMS.length} farms`;
-}
-function farmCard(f){
-  const st=stOf(f.id); const el=document.createElement('div');
-  el.className='farm'+(st!=='none'?' '+st:'')+(f.status==='closed'?' closed':'');
-  el.style.setProperty('--st',STATE[st].color); el.dataset.id=f.id;
-  const pill=f.status==='closed'?`<div><span class="spill closed">⚠ Tastings closed</span></div>`
-           :f.status==='appt'?`<div><span class="spill appt">📞 By appointment</span></div>`:'';
+/* ====================== CARDS / LISTS ====================== */
+function starsHtml(f){ const r=ratings[f.id]||0; let h=`<div class="stars" data-id="${f.id}">`; for(let i=1;i<=5;i++) h+=`<button data-star="${i}" class="${i<=r?'on':''}">${IC.star}</button>`; return h+'</div>'; }
+function farmCard(f){ const st=stOf(f.id); const el=document.createElement('div');
+  el.className='farm'+(st!=='none'?' '+st:'')+(f.status==='closed'?' closed':''); el.style.setProperty('--st',STATE[st].color); el.dataset.id=f.id;
+  const pill=f.status==='closed'?`<div><span class="spill closed">${IC.warn} Tastings closed</span></div>`:f.status==='appt'?`<div><span class="spill appt">${IC.phone} By appointment</span></div>`:'';
   el.innerHTML=`
     <div class="name-row"><span class="state-dot"></span><span class="name">${f.name}</span></div>
     <div class="meta">${f.tag}</div>
@@ -502,142 +436,96 @@ function farmCard(f){
     ${f.note?`<div class="pop-note">${f.note}</div>`:''}
     ${pill}
     <div class="statebtns">
-      <button class="been ${st==='been'?'on':''}" data-act="been">✓ Been here</button>
-      <button class="want ${st==='want'?'on':''}" data-act="want">★ Want to go</button>
+      <button class="been ${st==='been'?'on':''}" data-act="been">${IC.check} Been here</button>
+      <button class="want ${st==='want'?'on':''}" data-act="want">${IC.bookmark} Want to go</button>
     </div>
     <div class="extra">
-      ${starsHtml(f,'stars')}
-      <textarea class="note" rows="1" placeholder="Leave a note — what did you taste? 🍷">${(notes[f.id]||'').replace(/</g,'&lt;')}</textarea>
+      ${starsHtml(f)}
+      <textarea class="note" rows="1" placeholder="Leave a note — what did you taste?">${(notes[f.id]||'').replace(/</g,'&lt;')}</textarea>
     </div>
     <div class="actions">
-      <span class="locate">📍 Show on map</span>
-      <a class="directions" href="${dirUrl(f)}" target="_blank" rel="noopener">🧭 Google Maps</a>
+      <span class="locate">${IC.pin} Map</span>
+      <a class="directions" href="${dirUrl(f)}" target="_blank" rel="noopener">${IC.nav} Directions</a>
     </div>`;
   el.querySelectorAll('.statebtns button').forEach(b=>b.onclick=()=>setState(f.id,b.dataset.act));
-  el.querySelector('.name').onclick=()=>flyTo(f);
-  el.querySelector('.locate').onclick=()=>flyTo(f);
+  el.querySelector('.name').onclick=()=>{ showScreen('map'); flyTo(f); };
+  el.querySelector('.locate').onclick=()=>{ showScreen('map'); flyTo(f); };
   el.querySelector('.directions').onclick=(e)=>e.stopPropagation();
   el.querySelector('.stars').querySelectorAll('button').forEach(b=>b.onclick=()=>rate(f.id,+b.dataset.star));
-  const ta=el.querySelector('.note');
-  ta.oninput=()=>{ const v=ta.value.trim(); if(v) notes[f.id]=ta.value; else delete notes[f.id]; save(); };
+  const ta=el.querySelector('.note'); ta.oninput=()=>{ const v=ta.value.trim(); if(v)notes[f.id]=ta.value; else delete notes[f.id]; save(); };
   return el;
 }
-function flyTo(f){
-  if(!map||!markers[f.id]){ toast('📍 '+f.name); return; }
-  document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
-  map.flyTo([f.lat,f.lng],14,{duration:.8});
-  setTimeout(()=>markers[f.id].openPopup(),650);
+function renderList(container,status){ container.innerHTML=''; let shown=0;
+  Object.entries(CLUSTERS).forEach(([key,info])=>{ const items=FARMS.filter(f=>f.cluster===key&&listVisible(f,status)); if(!items.length)return; shown+=items.length;
+    const sec=document.createElement('div'); sec.className='cluster'; sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`;
+    const grid=document.createElement('div'); grid.className='grid'; items.forEach(f=>grid.appendChild(farmCard(f))); sec.appendChild(grid); container.appendChild(sec); });
+  if(!shown){ const msg= status==='been'?'No farms marked “Been” yet — tap ✓ on a farm to add it here.':status==='want'?'Nothing on your want-to-go list yet — tap the bookmark on a farm.':'No farms match your search or filters.';
+    container.innerHTML=`<div class="empty">${IC.empty}${msg}</div>`; }
 }
+function flyTo(f){ if(!map||!markers[f.id]){ toast(f.name); return; } document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'}); map.flyTo([f.lat,f.lng],14,{duration:.7}); setTimeout(()=>markers[f.id].openPopup(),600); }
 
 /* ====================== ACTIONS ====================== */
-function setState(id, act){
-  states[id] = (stOf(id)===act) ? undefined : act;   // tap again to clear
-  if(!states[id]) delete states[id];
-  save(); refreshFarm(id);
-  if(statusFilter!=='all') applyFilters();
-  updateProgress();
+function setState(id,act){ states[id]=(stOf(id)===act)?undefined:act; if(!states[id])delete states[id]; save(); afterChange(id); }
+function rate(id,star){ if(ratings[id]===star)delete ratings[id]; else{ratings[id]=star; if(!states[id])states[id]='been';} save(); afterChange(id); }
+function afterChange(id){ const f=FARMS.find(x=>x.id===id); if(markers[id]){ markers[id].setIcon(pinIcon(f)); if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f);} }
+  if(currentScreen==='map') filterMapMarkers(); else renderActive(); updateProgress(); }
+
+/* ====================== SCREENS ====================== */
+let currentScreen='map';
+const SCREEN_NAMES={map:'Map',explore:'Explore',been:'Been there',want:'Want to go',you:'Your passport'};
+function renderActive(){
+  if(currentScreen==='explore') renderList(document.getElementById('list-explore'),'all');
+  else if(currentScreen==='been') renderList(document.getElementById('list-been'),'been');
+  else if(currentScreen==='want') renderList(document.getElementById('list-want'),'want');
+  if(currentScreen==='explore'){ const n=FARMS.filter(f=>listVisible(f,'all')).length; document.getElementById('exploreCount').textContent=`${n} of ${FARMS.length} farms`; }
 }
-function rate(id, star){
-  if(ratings[id]===star) delete ratings[id]; else { ratings[id]=star; if(!states[id]) states[id]='been'; }
-  save(); refreshFarm(id);
-  if(statusFilter!=='all') applyFilters();
-  updateProgress();
-}
-function refreshFarm(id){
-  const f=FARMS.find(x=>x.id===id); const st=stOf(id);
-  if(markers[id]){ markers[id].setIcon(pinIcon(f));
-    if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f); } }
-  const card=document.querySelector(`.farm[data-id="${id}"]`);
-  if(card){
-    card.classList.remove('been','want'); if(st!=='none') card.classList.add(st);
-    card.style.setProperty('--st',STATE[st].color);
-    card.querySelectorAll('.statebtns button').forEach(b=>b.classList.toggle('on', b.dataset.act===st));
-    card.querySelectorAll('.stars button').forEach(b=>b.classList.toggle('on', +b.dataset.star<=(ratings[id]||0)));
-  }
+function showScreen(name){
+  currentScreen=name; document.body.dataset.screen=name;
+  document.getElementById('screenName').textContent=SCREEN_NAMES[name];
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='screen-'+name));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+  window.scrollTo({top:0});
+  if(name==='map'){ if(map){ setTimeout(()=>{map.invalidateSize(); filterMapMarkers();},50); } }
+  else if(name==='you'){ updateProgress(); }
+  else renderActive();
 }
 
 /* ====================== PROGRESS ====================== */
-const BADGES=[
-  [0,   'Cork still in — start ticking 🍾'],
-  [0.01,'First one down. Proost!'],
-  [0.15,'Finding your palate 🥂'],
-  [0.30,'Serious tasting energy now'],
-  [0.50,'Half the valley — designated driver who? 🍇'],
-  [0.75,'Franschhoek connoisseur 🏆'],
-  [1,   'LEGEND — the whole valley, tasted! 🍷👑'],
-];
-function updateProgress(){
-  const t=FARMS.length;
-  let been=0,want=0; FARMS.forEach(f=>{ const s=stOf(f.id); if(s==='been')been++; else if(s==='want')want++; });
-  const none=t-been-want;
-  document.getElementById('tBeen').textContent=been;
-  document.getElementById('tWant').textContent=want;
-  document.getElementById('tNone').textContent=none;
+const BADGES=[[0,'Cork still in — start exploring'],[0.01,'First one down. Proost!'],[0.15,'Finding your palate'],[0.30,'Serious tasting energy now'],[0.50,'Half the valley — who’s driving?'],[0.75,'Franschhoek connoisseur'],[1,'Legend — the whole valley, tasted!']];
+function updateProgress(){ const t=FARMS.length; let been=0,want=0; FARMS.forEach(f=>{const s=stOf(f.id); if(s==='been')been++; else if(s==='want')want++;});
+  document.getElementById('tBeen').textContent=been; document.getElementById('tWant').textContent=want; document.getElementById('tNone').textContent=t-been-want;
   const frac=been/t; document.getElementById('barFill').style.width=Math.round(frac*100)+'%';
-  let badge=BADGES[0][1]; for(const [n,txt] of BADGES){ if(frac>=n) badge=txt; }
-  const rated=Object.values(ratings);
-  if(rated.length){ const avg=(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1); badge+=`  ·  ★ ${avg} avg (${rated.length} rated)`; }
-  document.getElementById('badge').textContent=badge;
+  let b=BADGES[0][1]; for(const[n,txt] of BADGES){if(frac>=n)b=txt;}
+  const rated=Object.values(ratings); if(rated.length){const avg=(rated.reduce((a,c)=>a+c,0)/rated.length).toFixed(1); b+=` · ★ ${avg} avg`;}
+  document.getElementById('badge').textContent=b;
+  document.getElementById('youSub').textContent=`You've been to ${been} of ${t} farms`;
+  const bd=document.getElementById('beenDot'), wd=document.getElementById('wantDot');
+  bd.textContent=been; bd.parentElement.classList.toggle('has',been>0);
+  wd.textContent=want; wd.parentElement.classList.toggle('has',want>0);
 }
 
 /* ====================== CONTROLS ====================== */
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
-function shareUrl(){
-  const s=Object.entries(states).map(([id,v])=>id+'.'+(v==='been'?'b':'w')).join('_');
-  const r=Object.entries(ratings).map(([id,n])=>id+'.'+n).join('_');
-  let h='#'; if(s)h+='s='+s; if(r)h+=(s?'&':'')+'r='+r;
-  return location.origin+location.pathname+(h.length>1?h:'');
-}
-document.getElementById('shareBtn').onclick=async()=>{
-  const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;});
-  const text=`I've been to ${been}/${FARMS.length} Franschhoek wine farms 🍷 Here's my map:`;
-  try{
-    if(navigator.share){ await navigator.share({title:'My Franschhoek Wine List',text,url}); }
-    else { await navigator.clipboard.writeText(url); toast('Share link copied! 🔗'); }
-  }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied! 🔗');}catch(_){ toast('Copy the URL from the address bar'); } }
-};
-document.getElementById('randomBtn').onclick=()=>{
-  const todo=FARMS.filter(f=>stOf(f.id)==='none' && f.status!=='closed');
-  if(!todo.length){ toast('You’ve marked them all! 🏆'); return; }
-  const f=todo[Math.floor(Math.random()*todo.length)];
-  toast('Try next: '+f.name+' 🍷'); flyTo(f);
-};
-document.getElementById('resetBtn').onclick=()=>{
-  if(!confirm('Clear all your marks, ratings and notes?')) return;
-  states={}; ratings={}; notes={}; save();
-  history.replaceState(null,'',location.pathname);
-  FARMS.forEach(f=>{ if(markers[f.id]) markers[f.id].setIcon(pinIcon(f)); });
-  applyFilters(); updateProgress(); toast('List reset');
-};
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2000); }
+function shareUrl(){ const s=Object.entries(states).map(([id,v])=>id+'.'+(v==='been'?'b':'w')).join('_'); const r=Object.entries(ratings).map(([id,n])=>id+'.'+n).join('_'); let h='#'; if(s)h+='s='+s; if(r)h+=(s?'&':'')+'r='+r; return location.origin+location.pathname+(h.length>1?h:''); }
+document.getElementById('shareBtn').onclick=async()=>{ const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const text=`I've been to ${been}/${FARMS.length} Franschhoek wine farms 🍷 Here's my map:`;
+  try{ if(navigator.share){await navigator.share({title:'My Franschhoek Wine List',text,url});} else {await navigator.clipboard.writeText(url); toast('Share link copied');} }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied');}catch(_){toast('Copy the URL from the address bar');} } };
+document.getElementById('randomBtn').onclick=()=>{ const todo=FARMS.filter(f=>stOf(f.id)==='none'&&f.status!=='closed'); if(!todo.length){toast('You’ve marked them all!');return;} const f=todo[Math.floor(Math.random()*todo.length)]; toast('Try next: '+f.name); showScreen('map'); flyTo(f); };
+document.getElementById('resetBtn').onclick=()=>{ if(!confirm('Clear all your marks, ratings and notes?'))return; states={};ratings={};notes={};save(); history.replaceState(null,'',location.pathname); FARMS.forEach(f=>{if(markers[f.id])markers[f.id].setIcon(pinIcon(f));}); updateProgress(); renderActive(); if(currentScreen==='map')filterMapMarkers(); toast('Everything reset'); };
 
 const searchEl=document.getElementById('search'), clearx=document.getElementById('clearx');
-searchEl.oninput=()=>{ searchQ=searchEl.value.trim().toLowerCase(); clearx.classList.toggle('show',!!searchQ); applyFilters(); };
-clearx.onclick=()=>{ searchEl.value=''; searchQ=''; clearx.classList.remove('show'); applyFilters(); searchEl.focus(); };
+searchEl.oninput=()=>{ searchQ=searchEl.value.trim().toLowerCase(); clearx.classList.toggle('show',!!searchQ); renderActive(); };
+clearx.onclick=()=>{ searchEl.value=''; searchQ=''; clearx.classList.remove('show'); renderActive(); searchEl.focus(); };
 
-document.querySelectorAll('#areaFilters .chip').forEach(chip=>chip.onclick=()=>{
-  const c=chip.dataset.cluster;
-  if(activeClusters.has(c)) activeClusters.delete(c); else activeClusters.add(c);
-  if(activeClusters.size===0) Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k));
-  document.querySelectorAll('#areaFilters .chip').forEach(ch=>{ const on=activeClusters.has(ch.dataset.cluster); ch.classList.toggle('on',on); ch.classList.toggle('off',!on); });
-  applyFilters();
-});
-/* ---- Bottom tab bar (app-style navigation) ---- */
-const TAB_TITLES={all:'All farms', been:'🟢 Been there', want:'🟠 Want to go'};
-function setActiveTab(tab){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab)); }
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-  const tab=t.dataset.tab;
-  if(tab==='share'){ document.getElementById('shareBtn').click(); return; }
-  if(tab==='map'){ setActiveTab('map'); document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'}); return; }
-  statusFilter = tab==='all' ? 'all' : tab;     // all | been | want
-  document.getElementById('listTitle').textContent = TAB_TITLES[tab]||'All farms';
-  setActiveTab(tab); applyFilters();
-  document.getElementById('listAnchor').scrollIntoView({behavior:'smooth',block:'start'});
-});
+document.querySelectorAll('#areaFilters .chip').forEach(chip=>chip.onclick=()=>{ const c=chip.dataset.cluster; if(activeClusters.has(c))activeClusters.delete(c); else activeClusters.add(c); if(activeClusters.size===0)Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k));
+  document.querySelectorAll('#areaFilters .chip').forEach(ch=>{const on=activeClusters.has(ch.dataset.cluster); ch.classList.toggle('on',on); ch.classList.toggle('off',!on);});
+  if(currentScreen==='map')filterMapMarkers(); else renderActive(); });
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showScreen(t.dataset.tab));
 
 /* ====================== INIT ====================== */
 document.getElementById('farmCount').textContent=FARMS.length;
-applyFilters(); updateProgress();
-if(map) map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12));
+updateProgress();
+if(map){ map.whenReady(()=>{ map.invalidateSize(); map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12)); }); }
 </script>
 </body>
 </html>
