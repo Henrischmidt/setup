@@ -207,6 +207,8 @@
   .grape{margin-left:auto;background:none;border:none;cursor:pointer;padding:2px;line-height:0;display:inline-flex;
     filter:drop-shadow(0 2px 4px rgba(74,18,38,.18));transition:transform .15s var(--ease)}
   .grape:active{transform:scale(.9)}
+  .grape.pulse{animation:gpulse .55s var(--ease)}
+  @keyframes gpulse{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
   .grapeico{display:block}
   .regions{position:fixed;z-index:1500;width:252px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 34px rgba(74,18,38,.18);padding:13px 14px;animation:rise .2s var(--ease)}
   .regions[hidden]{display:none}
@@ -915,6 +917,7 @@ function updateProgress(){ const t=FARMS.length; let been=0,want=0; const byR={}
   // milestone celebrations
   const doneR=new Set(Object.entries(byR).filter(([,c])=>c.total&&c.been===c.total).map(([k])=>k));
   if(_prevBeen!==null && been>_prevBeen){
+    const gb=document.getElementById('grapeBtn'); gb.classList.remove('pulse'); void gb.offsetWidth; gb.classList.add('pulse');
     doneR.forEach(k=>{ if(!_prevDone.has(k)) celebrate('All of '+REGIONS[k].label+' tasted — legend!'); });
     if(been===t){ celebrate('Every farm in the Cape — absolute legend!'); }
     else { const pm=Math.floor(_prevBeen/t*4), cm=Math.floor(been/t*4); if(cm>pm) celebrate([0,25,50,75][cm]+'% of the Cape tasted!'); }
