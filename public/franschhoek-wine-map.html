@@ -127,6 +127,12 @@
   .name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px;line-height:1.05;color:var(--wine);cursor:pointer}
   .farm.closed .name{text-decoration:line-through;text-decoration-color:rgba(154,59,59,.5)}
   .meta{margin-top:3px;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#5a6b3b}
+  .wines{display:flex;gap:7px;margin-top:7px;font-size:12px;color:#6a4a72;line-height:1.4;background:#f7f0f7;border:1px solid rgba(142,90,168,.18);border-radius:9px;padding:7px 9px}
+  .wines .ico{width:14px;height:14px;flex:0 0 auto;color:#8e5aa8;margin-top:1px}
+  .wines b{color:#6b1f3a}
+  .stepb{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font:700 12px Inter;display:inline-flex;align-items:center;justify-content:center}
+  .routenote{margin:-2px 0 10px;font-size:12px;color:var(--muted);line-height:1.45;background:#fbf1e3;border:1px solid rgba(221,138,44,.25);border-radius:9px;padding:8px 10px}
+  .cluster > h3 .ico{width:14px;height:14px;color:var(--orange)}
   .fact{margin-top:6px;font-size:12px;color:#6a5560;line-height:1.4}
   .spill{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
   .spill .ico{width:11px;height:11px}
@@ -257,6 +263,8 @@
         <g class="wheel"><circle cx="40" cy="66" r="13" fill="#241019"/><circle cx="40" cy="66" r="5" fill="#f7ecd8"/><path d="M40 55v22M29 66h22" stroke="#6b1f3a" stroke-width="2" opacity=".5"/></g>
         <g class="wheel"><circle cx="96" cy="66" r="13" fill="#241019"/><circle cx="96" cy="66" r="5" fill="#f7ecd8"/><path d="M96 55v22M85 66h22" stroke="#6b1f3a" stroke-width="2" opacity=".5"/></g>
         <rect x="48" y="15" width="44" height="5" rx="2.5" fill="#bd8b3c"/>
+        <rect x="62" y="0" width="3.4" height="10" rx="1.7" fill="#5a3b1e"/>
+        <path d="M65 3 q10 -4 15 1 q-9 4 -15 -1 z" fill="#5a8f3a"/>
         <g class="rgrapes" fill="#8e5aa8">
           <circle class="rg" cx="76" cy="9" r="6"/>
           <circle class="rg" cx="62" cy="8" r="6"/>
@@ -309,7 +317,7 @@
 
     <!-- EXPLORE -->
     <section class="screen" id="screen-explore">
-      <div class="screen-head"><h2>All farms</h2><p id="exploreCount"></p></div>
+      <div class="screen-head"><h2>To visit</h2><p id="exploreCount"></p></div>
       <div id="list-explore"></div>
     </section>
 
@@ -368,6 +376,8 @@ const IC = {
   phone:'<svg class="ico" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
   warn:'<svg class="ico" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
   empty:'<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  wine:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 22h8M12 15v7M5 3h14l-1.1 6.2a6 6 0 0 1-11.8 0z"/></svg>',
+  route:'<svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 0-8H10a4 4 0 0 1 0-8h6"/></svg>',
 };
 
 /* ====================== DATA ====================== */
@@ -385,7 +395,6 @@ const FARMS = [
   {id:'colmant', name:'Colmant', cluster:'town', lat:-33.8980, lng:19.0985, tag:'Bubbly only', fact:'Belgian-rooted house dedicated entirely to traditional-method Cap Classique.'},
   {id:'grande-provence', name:'Grande Provence', cluster:'town', lat:-33.8958, lng:19.1003, tag:'Art & wine', fact:'Historic 1694 estate with a sculpture garden, gallery and fine-dining restaurant.'},
   {id:'franschhoek-cellar', name:'Franschhoek Cellar', cluster:'town', lat:-33.9013, lng:19.0935, tag:'Relaxed & central', fact:'Easy-going tastings and lawns right on the edge of the village.'},
-  {id:'my-wyn', name:'My Wyn', cluster:'town', lat:-33.9060, lng:19.1110, tag:'Garagiste', fact:'Hand-crafted micro-batch wines from a true garagiste winemaker.'},
   {id:'la-motte', name:'La Motte', cluster:'valley', lat:-33.8997, lng:19.0853, tag:'Historic Rupert estate', fact:'Manicured 1695 estate with a museum, hiking trail and the Pierneef à La Motte restaurant.'},
   {id:'leopards-leap', name:"Leopard's Leap", cluster:'valley', lat:-33.9008, lng:19.0818, tag:'Family vineyards', fact:'Modern tasting hall, conservation focus and famously generous food-and-wine pairings.'},
   {id:'rickety-bridge', name:'Rickety Bridge', cluster:'valley', lat:-33.8957, lng:19.0928, tag:'Since 1797', fact:'Between the Dassenberg and the river; estate cellar dating back to 1797.'},
@@ -433,6 +442,72 @@ const CLUSTERS = {
 };
 const STATE = { none:{color:'#c0392b'}, want:{color:'#dd8a2c'}, been:{color:'#3f8a45'} };
 
+/* Signature wines / what to taste (indicative — ranges & labels can change) */
+const WINES = {
+  'haute-cabriere':'Pierre Jourdan Cap Classique, Pinot Noir, Chardonnay-Pinot blends',
+  'la-petite-ferme':'Sauvignon Blanc, barrel-fermented Chardonnay, Shiraz',
+  'mont-rochelle':'Sauvignon Blanc, Syrah, Chardonnay (Country & Miko ranges)',
+  'leeu-estates':'Mullineux Syrah & Old Vines White, Leeu Chardonnay',
+  'chamonix':'Chardonnay Reserve, Pinot Noir, Troika (Bordeaux blend), Greywacke',
+  'dieu-donne':'Chardonnay, Cabernet Sauvignon, Shiraz',
+  'la-bri':'Sémillon, Syrah, Affinity (Bordeaux blend)',
+  'stony-brook':'Sémillon, Cabernet Sauvignon, Ghost Gum red blend',
+  'boekenhoutskloof':'The Chocolate Block, Syrah, Cabernet Sauvignon, Sémillon',
+  'le-lude':'Cap Classique Brut, Rosé & Agrafe (méthode traditionnelle)',
+  'colmant':'Cap Classique Brut Réserve, Brut Rosé, Absolu Zéro',
+  'grande-provence':'Chenin Blanc, The Grande Provence (Bordeaux blend), Cap Classique',
+  'franschhoek-cellar':'Chardonnay, Sauvignon Blanc, Cabernet (Baker Station range)',
+  'la-motte':'Shiraz, Sauvignon Blanc, Millennium & Pierneef ranges',
+  'leopards-leap':'Chardonnay, Shiraz-Grenache, Culinaria pairings',
+  'rickety-bridge':'Chenin Blanc, Cabernet, The Bridge & Foundation Stone',
+  'moreson':'Chardonnay, Cap Classique (Solitaire/Miss Molly), Pinot Noir',
+  'maison':'Syrah, Chenin Blanc, Chardonnay (boutique)',
+  'holden-manz':'Cabernet Sauvignon, Syrah, Rothko & Visionaire blends',
+  'glenwood':'Vigneron’s Selection Chardonnay, Syrah, Sémillon',
+  'eikehof':'Old-vine Sémillon, Syrah, Chardonnay',
+  'lynx':'Shiraz, Viognier, Xanache blend',
+  'la-bourgogne':'Chenin Blanc, Shiraz (farm wines)',
+  'topiary':'Chardonnay, Cabernet Sauvignon, Cap Classique',
+  'la-chataigne':'Sauvignon Blanc, Shiraz, Cap Classique',
+  'le-manoir-de-brendel':'Cap Classique, Chardonnay, Bordeaux-style reds',
+  'akkerdal':'Shiraz, Chenin Blanc, Tinta Barocca',
+  'la-vigne':'Sauvignon Blanc, Merlot',
+  'la-petite-provence':'Chenin Blanc, Cabernet, Cap Classique',
+  'paserene':'Marathon (Chardonnay), Union (Bordeaux blend), Restio',
+  'klein-goederust':'Cap Classique, Chenin Blanc, Klippe Kop Pinotage',
+  'atlas-swift':'Chardonnay, Syrah (small-batch)',
+  'boschendal':'Cap Classique Brut, Chardonnay, Shiraz, Black Angus',
+  'anthonij-rupert':'Cabernet Sauvignon, Optima, Cape of Good Hope range',
+  'lormarins':'Terra del Capo Sangiovese & Arné, Cap Classique',
+  'babylonstoren':'Chenin Blanc, Shiraz, Babel red, Cap Classique',
+  'backsberg':'Pumphouse Shiraz, Chardonnay, Pinotage (kosher range too)',
+  'rupert-rothschild':'Baroness Nadine Chardonnay, Baron Edmond (Bordeaux blend)',
+  'vrede-en-lust':'Sauvignon Blanc, Cap Classique, Boet Erasmus red blend',
+  'noble-hill':'Mourvèdre-Grenache, Sauvignon Blanc, estate blends',
+  'plaisir':'Chardonnay, Cabernet, Grand Plaisir blend',
+  'allee-bleue':'Sauvignon Blanc, Starlette range, Cap Classique',
+  'solms-delta':'Hiervandaan Shiraz, Amalie white, Lekkerwijn rosé',
+  'bellingham':'Bernard Series Old Vine Chenin & Roussanne, Homestead',
+  'graham-beck':'Cap Classique Brut, Blanc de Blancs, Bliss Demi-Sec',
+  'la-petite-vigne':'Chenin Blanc, Shiraz (boutique parcels)',
+  'von-ortloff':'Chardonnay, Sauvignon Blanc, No. 5 (Bordeaux blend)',
+  'la-chaumiere':'Sauvignon Blanc, Merlot',
+  'la-couronne':'Chardonnay, Shiraz, Cabernet (hillside)',
+  'bo-la-motte':'Chenin Blanc, Shiraz, Cap Classique',
+  'blueberry-hill':'Shiraz, Chardonnay (small farm)',
+  'haut-espoir':'Sauvignon Blanc, Syrah, The Cluster blends',
+};
+function winesOf(f){ return WINES[f.id]||''; }
+/* Nearest-neighbour ordering so a route reads start→finish across an area */
+function routeOrder(items){
+  if(items.length<3) return items.slice();
+  const pts=items.slice(); let s=0; pts.forEach((p,i)=>{ if(p.lng<pts[s].lng) s=i; });
+  const route=[pts.splice(s,1)[0]];
+  while(pts.length){ const last=route[route.length-1]; let bi=0,bd=Infinity;
+    pts.forEach((p,i)=>{ const d=(p.lat-last.lat)**2+(p.lng-last.lng)**2; if(d<bd){bd=d;bi=i;} }); route.push(pts.splice(bi,1)[0]); }
+  return route;
+}
+
 /* ====================== STATE + STORAGE ====================== */
 const STORE_KEY='fhk-wine-passport-v3';
 let states={}, ratings={}, notes={};
@@ -463,7 +538,12 @@ function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=$
 const activeClusters=new Set(Object.keys(CLUSTERS));
 let searchQ='';
 function matchSearch(f){ return !searchQ || f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ); }
-function listVisible(f,status){ return activeClusters.has(f.cluster) && (status==='all'||stOf(f.id)===status) && matchSearch(f); }
+function listVisible(f,mode){
+  if(!activeClusters.has(f.cluster)) return false;
+  if(mode==='notbeen'){ if(stOf(f.id)==='been') return false; }
+  else if(mode!=='all' && stOf(f.id)!==mode) return false;
+  return matchSearch(f);
+}
 function mapVisible(f){ return activeClusters.has(f.cluster) && matchSearch(f); }
 
 /* ====================== MAP ====================== */
@@ -487,6 +567,7 @@ function popupHtml(f){ const st=stOf(f.id);
     <div class="pop-name">${f.name}</div>
     <span class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}</span>
     <div class="pop-fact">${f.fact}</div>
+    ${winesOf(f)?`<div class="pop-fact" style="color:#5a6b3b"><b>Taste:</b> ${winesOf(f)}</div>`:''}
     ${f.status==='closed'?'<div class="pop-note">'+IC.warn+' '+(f.note||'Tastings closed.')+'</div>':''}
     ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">'+IC.phone+' By appointment only.</div>':''}
     ${starsHtml(f)}
@@ -505,13 +586,16 @@ function filterMapMarkers(){ FARMS.forEach(f=>{ const m=markers[f.id]; if(!m||!m
 
 /* ====================== CARDS / LISTS ====================== */
 function starsHtml(f){ const r=ratings[f.id]||0; let h=`<div class="stars" data-id="${f.id}">`; for(let i=1;i<=5;i++) h+=`<button data-star="${i}" class="${i<=r?'on':''}">${IC.star}</button>`; return h+'</div>'; }
-function farmCard(f){ const st=stOf(f.id); const el=document.createElement('div');
+function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createElement('div');
   el.className='farm'+(st!=='none'?' '+st:'')+(f.status==='closed'?' closed':''); el.style.setProperty('--st',STATE[st].color); el.dataset.id=f.id;
   const pill=f.status==='closed'?`<div><span class="spill closed">${IC.warn} Tastings closed</span></div>`:f.status==='appt'?`<div><span class="spill appt">${IC.phone} By appointment</span></div>`:'';
+  const lead = routeNum ? `<span class="stepb">${routeNum}</span>` : `<span class="state-dot"></span>`;
+  const w=winesOf(f);
   el.innerHTML=`
-    <div class="name-row"><span class="state-dot"></span><span class="name">${f.name}</span></div>
+    <div class="name-row">${lead}<span class="name">${f.name}</span></div>
     <div class="meta">${f.tag}</div>
     <div class="fact">${f.fact}</div>
+    ${w?`<div class="wines">${IC.wine}<span><b>Taste:</b> ${w}</span></div>`:''}
     ${f.note?`<div class="pop-note">${f.note}</div>`:''}
     ${pill}
     <div class="statebtns">
@@ -534,11 +618,16 @@ function farmCard(f){ const st=stOf(f.id); const el=document.createElement('div'
   const ta=el.querySelector('.note'); ta.oninput=()=>{ const v=ta.value.trim(); if(v)notes[f.id]=ta.value; else delete notes[f.id]; save(); };
   return el;
 }
-function renderList(container,status){ container.innerHTML=''; let shown=0;
-  Object.entries(CLUSTERS).forEach(([key,info])=>{ const items=FARMS.filter(f=>f.cluster===key&&listVisible(f,status)); if(!items.length)return; shown+=items.length;
-    const sec=document.createElement('div'); sec.className='cluster'; sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`;
-    const grid=document.createElement('div'); grid.className='grid'; items.forEach(f=>grid.appendChild(farmCard(f))); sec.appendChild(grid); container.appendChild(sec); });
-  if(!shown){ const msg= status==='been'?'No farms marked “Been” yet — tap ✓ on a farm to add it here.':status==='want'?'Nothing on your want-to-go list yet — tap the bookmark on a farm.':'No farms match your search or filters.';
+function renderList(container,mode){ container.innerHTML=''; let shown=0;
+  Object.entries(CLUSTERS).forEach(([key,info])=>{ let items=FARMS.filter(f=>f.cluster===key&&listVisible(f,mode)); if(!items.length)return; shown+=items.length;
+    const sec=document.createElement('div'); sec.className='cluster';
+    if(mode==='want'){ items=routeOrder(items);
+      sec.innerHTML=`<h3>${IC.route} ${info.label} · route (${items.length})</h3>`;
+      if(items.length>1){ const n=document.createElement('p'); n.className='routenote'; n.textContent='Suggested order: start at 1, finish at '+items.length+'. They sit near each other — do them in one trip.'; sec.appendChild(n); }
+    } else { sec.innerHTML=`<h3>${info.label} · ${items.length}</h3>`; }
+    const grid=document.createElement('div'); grid.className='grid';
+    items.forEach((f,i)=>grid.appendChild(farmCard(f, mode==='want'?i+1:0))); sec.appendChild(grid); container.appendChild(sec); });
+  if(!shown){ const msg= mode==='been'?'No farms marked Been yet — tap Been here on a farm and it lands here.':mode==='want'?'Nothing on your want-to-go list yet — tap Want to go on any farm and a suggested route appears here.':'Nothing left to visit here — try another area or clear the search.';
     container.innerHTML=`<div class="empty">${IC.empty}${msg}</div>`; }
 }
 function flyTo(f){ if(!map||!markers[f.id]){ toast(f.name); return; }
@@ -560,10 +649,11 @@ function afterChange(id){ const f=FARMS.find(x=>x.id===id); if(markers[id]){ mar
 let currentScreen='map';
 const SCREEN_NAMES={map:'Map',explore:'Explore',been:'Been there',want:'Want to go',you:'Your passport'};
 function renderActive(){
-  if(currentScreen==='explore') renderList(document.getElementById('list-explore'),'all');
+  if(currentScreen==='explore') renderList(document.getElementById('list-explore'),'notbeen');
   else if(currentScreen==='been') renderList(document.getElementById('list-been'),'been');
   else if(currentScreen==='want') renderList(document.getElementById('list-want'),'want');
-  if(currentScreen==='explore'){ const n=FARMS.filter(f=>listVisible(f,'all')).length; document.getElementById('exploreCount').textContent=`${n} of ${FARMS.length} farms`; }
+  if(currentScreen==='explore'){ let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const left=FARMS.length-been;
+    document.getElementById('exploreCount').textContent=`${left} still to visit · ${been} done`; }
 }
 function showScreen(name){
   currentScreen=name; document.body.dataset.screen=name;
