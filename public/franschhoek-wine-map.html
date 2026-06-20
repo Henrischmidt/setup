@@ -615,6 +615,7 @@ const REGIONS={
 const CLUSTER_REGION={}; Object.entries(REGIONS).forEach(([r,o])=>o.clusters.forEach(c=>CLUSTER_REGION[c]=r));
 function regionOf(f){ return CLUSTER_REGION[f.cluster]||'franschhoek'; }
 let activeRegion='franschhoek';
+try{ const sr=localStorage.getItem('fhk-region'); if(sr&&REGIONS[sr]) activeRegion=sr; }catch(e){}
 const STATE = { none:{color:'#c0392b'}, want:{color:'#dd8a2c'}, been:{color:'#3f8a45'} };
 
 /* Signature wines / what to taste (indicative — ranges & labels can change) */
@@ -745,7 +746,7 @@ function readScaled(file,max,cb){ const rd=new FileReader(); rd.onload=()=>{ con
 function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`; }
 
 /* ====================== FILTER ====================== */
-let activeClusters=new Set(REGIONS['franschhoek'].clusters);
+let activeClusters=new Set(REGIONS[activeRegion].clusters);
 let searchQ='';
 function matchSearch(f){ return !searchQ || f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ) || winesOf(f).toLowerCase().includes(searchQ); }
 function listVisible(f,mode){
@@ -856,8 +857,8 @@ function flyTo(f){ if(!map||!markers[f.id]){ toast(f.name); return; }
 }
 
 /* ====================== ACTIONS ====================== */
-function setState(id,act){ states[id]=(stOf(id)===act)?undefined:act; if(!states[id])delete states[id]; save(); afterChange(id); }
-function rate(id,star){ if(ratings[id]===star)delete ratings[id]; else{ratings[id]=star; if(!states[id])states[id]='been';} save(); afterChange(id); }
+function setState(id,act){ states[id]=(stOf(id)===act)?undefined:act; if(!states[id])delete states[id]; else buzz(18); save(); afterChange(id); }
+function rate(id,star){ if(ratings[id]===star)delete ratings[id]; else{ratings[id]=star; if(!states[id])states[id]='been'; buzz(12);} save(); afterChange(id); }
 function afterChange(id){ const f=FARMS.find(x=>x.id===id); if(markers[id]){ markers[id].setIcon(pinIcon(f)); if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f);} }
   if(currentScreen==='map') filterMapMarkers(); else renderActive(); updateProgress(); if(liveOn())supaSyncPlayer(); }
 
@@ -893,6 +894,7 @@ function grapeSVG(id,frac,size){ const fy=30-(30*frac);
     <g fill="#8e5aa8" clip-path="url(#gc-${id})">${GRAPE_CIRCLES}</g>
   </svg>`;
 }
+let _prevBeen=null, _prevDone=new Set();
 function updateProgress(){ const t=FARMS.length; let been=0,want=0; const byR={};
   Object.keys(REGIONS).forEach(r=>byR[r]={been:0,total:0});
   FARMS.forEach(f=>{const s=stOf(f.id); const r=regionOf(f); byR[r].total++; if(s==='been'){been++;byR[r].been++;} else if(s==='want')want++;});
@@ -910,10 +912,20 @@ function updateProgress(){ const t=FARMS.length; let been=0,want=0; const byR={}
   const rg=document.getElementById('regions'); rg.innerHTML=h;
   rg.querySelectorAll('.regrow').forEach(r=>r.onclick=()=>{ switchRegion(r.dataset.region); rg.hidden=true; });
   renderFriends();
+  // milestone celebrations
+  const doneR=new Set(Object.entries(byR).filter(([,c])=>c.total&&c.been===c.total).map(([k])=>k));
+  if(_prevBeen!==null && been>_prevBeen){
+    doneR.forEach(k=>{ if(!_prevDone.has(k)) celebrate('All of '+REGIONS[k].label+' tasted — legend!'); });
+    if(been===t){ celebrate('Every farm in the Cape — absolute legend!'); }
+    else { const pm=Math.floor(_prevBeen/t*4), cm=Math.floor(been/t*4); if(cm>pm) celebrate([0,25,50,75][cm]+'% of the Cape tasted!'); }
+  }
+  _prevBeen=been; _prevDone=doneR;
 }
 
 /* ====================== CONTROLS ====================== */
 function toast(m,ms){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),ms||2000); }
+function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p||14); }catch(e){} }
+function celebrate(msg){ toast(msg,3400); buzz([28,40,28]); }
 
 /* Playful quips — randomised per property for the "Surprise me" button */
 const QUIPS=[
@@ -963,7 +975,7 @@ function buildAreaChips(){ const el=document.getElementById('areaFilters'); cons
     el.querySelectorAll('.chip').forEach(ch=>{const on=activeClusters.has(ch.dataset.cluster); ch.classList.toggle('on',on); ch.classList.toggle('off',!on);});
     if(currentScreen==='map')filterMapMarkers(); else renderActive(); });
 }
-function switchRegion(r){ if(!REGIONS[r])return; activeRegion=r; activeClusters=new Set(REGIONS[r].clusters);
+function switchRegion(r){ if(!REGIONS[r])return; activeRegion=r; activeClusters=new Set(REGIONS[r].clusters); try{localStorage.setItem('fhk-region',r);}catch(e){}
   buildRegionChips(); buildAreaChips();
   if(map){ const fs=FARMS.filter(f=>regionOf(f)===r); filterMapMarkers(); if(fs.length) map.fitBounds(L.latLngBounds(fs.map(f=>[f.lat,f.lng])).pad(0.2)); }
   if(currentScreen!=='map') renderActive();
