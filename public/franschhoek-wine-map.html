@@ -283,6 +283,35 @@
   .tour-dots i.on{background:var(--wine);width:18px;border-radius:99px}
   .tour-tip button{font:600 13.5px Inter;border:none;background:none;color:var(--muted);cursor:pointer;padding:9px 12px;border-radius:10px}
   .tour-tip button.primary{background:var(--wine);color:#fff;padding:9px 18px}
+
+  /* ---------- Price ---------- */
+  .pricetag{font-style:normal;font-weight:700;color:var(--gold);white-space:nowrap}
+
+  /* ---------- Location ---------- */
+  .youdot{width:18px;height:18px;border-radius:50%;background:#2b7fff;border:3px solid #fff;box-shadow:0 0 0 5px rgba(43,127,255,.25),0 2px 6px rgba(0,0,0,.3)}
+  .geobtn.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .geobtn{margin-top:12px}
+  #arrive{position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:5500;max-width:520px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 34px rgba(74,18,38,.22);padding:13px 14px;animation:rise .25s var(--ease)}
+  #arrive[hidden]{display:none}
+  .arrive-top{display:flex;align-items:center;gap:9px}
+  .arrive-top b{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--wine)}
+  .arrive-top span{font-size:12px;color:var(--muted)}
+  .arrive-x{margin-left:auto;border:none;background:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+  .arrive-btns{display:flex;gap:8px;margin-top:11px}
+  .arrive-btns button{flex:1;font:700 13px Inter;border-radius:10px;padding:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;display:inline-flex;gap:6px;align-items:center;justify-content:center}
+  .arrive-btns .ico{width:15px;height:15px}
+  .arrive-btns .ab-been{background:var(--green);color:#fff;border-color:var(--green)}
+  .arrive-btns .ab-photo{background:var(--wine);color:#fff;border-color:var(--wine)}
+
+  /* ---------- Leaderboard ---------- */
+  .board{margin-top:4px}
+  .brow{display:flex;align-items:center;gap:11px;padding:8px 4px;border-top:1px solid var(--line)}
+  .brow .rank{width:23px;height:23px;border-radius:50%;background:#efe3d4;color:var(--wine);font:700 12px Inter;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .brow b{flex:1;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;min-width:0}
+  .brow .bn{font:700 14px Inter;color:var(--green)}
+  .brow.me{background:#f6fbf4;border-radius:10px;border-top-color:transparent}
+  .brow.me .rank{background:var(--gold);color:#fff}
+  .brow.lead{background:#fbf6e9;border-radius:10px}
 </style>
 </head>
 <body data-screen="map">
@@ -354,6 +383,7 @@
         <span>By appointment</span>
         <span>Closed (2026)</span>
       </div>
+      <button class="bigbtn geobtn" id="geoBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> <span class="gtxt">Share my location</span></button>
     </section>
 
     <!-- EXPLORE -->
@@ -411,6 +441,15 @@
   <button class="tab" data-tab="want"><svg class="ico" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Want</span></button>
   <button class="tab" data-tab="you"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>You</span></button>
 </nav>
+
+<div id="arrive" hidden>
+  <div class="arrive-top"><b id="arriveName"></b><span id="arriveDist"></span><button class="arrive-x" id="arriveX" aria-label="Dismiss">×</button></div>
+  <div class="arrive-btns">
+    <button class="ab-been" id="arriveBeen"><svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg> Mark as Been</button>
+    <button class="ab-photo" id="arrivePhoto"><svg class="ico" viewBox="0 0 24 24"><path d="M3 7h3l2-2h8l2 2h3v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg> Post a photo</button>
+  </div>
+  <input type="file" accept="image/*" id="arriveFile" hidden>
+</div>
 
 <div class="lb" id="lightbox"><img src="" alt="" id="lbImg"/></div>
 
@@ -570,6 +609,11 @@ const EST = {
   'rupert-rothschild':1690,'vrede-en-lust':1688,'plaisir':1693,'solms-delta':1690,'bellingham':1693,'graham-beck':1983,
 };
 function ageLabel(f){ const y=EST[f.id]; return y?`Est. ${y} · ${2026-y} yrs`:''; }
+/* Indicative tasting-fee tier (2025 ranges — verify before visiting) */
+const PRICE={ babylonstoren:3,boschendal:3,'la-motte':3,'mont-rochelle':3,'leeu-estates':3,'le-lude':3,'anthonij-rupert':3,'rupert-rothschild':3,'grande-provence':3,'holden-manz':3,boekenhoutskloof:3,
+  eikehof:1,'la-bourgogne':1,'la-chataigne':1,'le-manoir-de-brendel':1,akkerdal:1,'la-vigne':1,'la-petite-provence':1,'atlas-swift':1,'la-petite-vigne':1,'bo-la-motte':1,'blueberry-hill':1,'haut-espoir':1,'la-chaumiere':1 };
+const PRICES={1:{s:'$',r:'~R50–110'},2:{s:'$$',r:'~R120–200'},3:{s:'$$$',r:'R220+'}};
+function priceInfo(f){ return PRICES[PRICE[f.id]||2]; }
 /* Nearest-neighbour ordering so a route reads start→finish across an area */
 function routeOrder(items){
   if(items.length<3) return items.slice();
@@ -644,7 +688,7 @@ function popupHtml(f){ const st=stOf(f.id);
     <div class="pop-name">${f.name}</div>
     <span class="pop-tag">${CLUSTERS[f.cluster].label.split(' ')[0]} · ${f.tag}${ageLabel(f)?' · '+ageLabel(f):''}</span>
     <div class="pop-fact">${f.fact}</div>
-    ${winesOf(f)?`<div class="pop-fact" style="color:#5a6b3b"><b>Taste:</b> ${winesOf(f)}</div>`:''}
+    ${winesOf(f)?`<div class="pop-fact" style="color:#5a6b3b"><b>Taste:</b> ${winesOf(f)} · <b>${priceInfo(f).s}</b> ${priceInfo(f).r}</div>`:''}
     ${f.status==='closed'?'<div class="pop-note">'+IC.warn+' '+(f.note||'Tastings closed.')+'</div>':''}
     ${f.status==='appt'?'<div class="pop-note" style="color:#516b1f">'+IC.phone+' By appointment only.</div>':''}
     ${starsHtml(f)}
@@ -672,7 +716,7 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
     <div class="name-row">${lead}<span class="name">${f.name}</span></div>
     <div class="meta">${f.tag}${ageLabel(f)?' · '+ageLabel(f):''}</div>
     <div class="fact">${f.fact}</div>
-    ${w?`<div class="wines">${IC.wine}<span><b>Taste:</b> ${w}</span></div>`:''}
+    ${w?`<div class="wines">${IC.wine}<span><b>Taste:</b> ${w} <em class="pricetag" title="Indicative tasting fee — verify before you go">${priceInfo(f).s} ${priceInfo(f).r}</em></span></div>`:''}
     ${f.note?`<div class="pop-note">${f.note}</div>`:''}
     ${pill}
     <div class="statebtns">
@@ -776,6 +820,7 @@ function updateProgress(){ const t=FARMS.length; let been=0,want=0; const byc={}
     h+=`<div class="regrow">${grapeSVG('r'+k,rf,30)}<div class="reginfo"><b>${info.label}</b><span>${c.been}/${c.total} · ${Math.round(rf*100)}%</span></div></div>`; });
   h+=`<div class="regsoon">Stellenbosch · Paarl · Constantia — coming soon</div>`;
   document.getElementById('regions').innerHTML=h;
+  renderFriends();
 }
 
 /* ====================== CONTROLS ====================== */
@@ -855,10 +900,15 @@ function parseShare(url){ const out={}; try{ const h=(String(url).split('#')[1]|
   (p.get('r')||'').split('_').filter(Boolean).forEach(x=>{const a=x.split('.'); if(a[0]&&!out[a[0]]) out[a[0]]='been';});
  }catch(e){} return out; }
 function renderFriends(){ const el=document.getElementById('friendsList'); if(!el) return;
-  if(!friends.length){ el.innerHTML='<p class="muted2">No friends yet — tap “Invite a friend”, or “Add a friend’s list” using the link they sent you.</p>'; return; }
-  const mine=new Set(FARMS.filter(f=>stOf(f.id)==='been').map(f=>f.id));
-  el.innerHTML=friends.map((fr,i)=>{ const fb=Object.keys(fr.states||{}).filter(id=>fr.states[id]==='been'); const common=fb.filter(id=>mine.has(id)).length;
-    return `<div class="friend"><div><b>${(fr.name||'Friend').replace(/</g,'&lt;')}</b><span>${fb.length} been · ${common} in common with you</span></div><button class="delf" data-i="${i}">remove</button></div>`; }).join('');
+  const mineBeen=FARMS.filter(f=>stOf(f.id)==='been').length;
+  const board=[{name:'You',been:mineBeen,me:true}, ...friends.map(fr=>({name:fr.name||'Friend',been:Object.keys(fr.states||{}).filter(id=>fr.states[id]==='been').length}))];
+  board.sort((a,b)=>b.been-a.been);
+  let h='<div class="board">'+board.map((p,i)=>`<div class="brow${p.me?' me':''}${i===0&&p.been>0?' lead':''}"><span class="rank">${i+1}</span><b>${String(p.name).replace(/</g,'&lt;')}</b><span class="bn">${p.been}</span></div>`).join('')+'</div>';
+  if(friends.length){ const mine=new Set(FARMS.filter(f=>stOf(f.id)==='been').map(f=>f.id));
+    h+=friends.map((fr,i)=>{ const fb=Object.keys(fr.states||{}).filter(id=>fr.states[id]==='been'); const common=fb.filter(id=>mine.has(id)).length;
+      return `<div class="friend"><div><b>${(fr.name||'Friend').replace(/</g,'&lt;')}</b><span>${fb.length} been · ${common} in common</span></div><button class="delf" data-i="${i}">remove</button></div>`; }).join('');
+  } else { h+='<p class="muted2">Invite a friend or add their list — they’ll appear on the leaderboard above.</p>'; }
+  el.innerHTML=h;
   el.querySelectorAll('.delf').forEach(b=>b.onclick=()=>{ friends.splice(+b.dataset.i,1); saveFriends(); renderFriends(); });
 }
 document.getElementById('inviteBtn').onclick=()=>document.getElementById('shareBtn').click();
@@ -889,6 +939,35 @@ function startTour(){ document.getElementById('tour').hidden=false; tourStep(0);
 function endTour(){ document.getElementById('tour').hidden=true; try{localStorage.setItem('fhk-onboarded-v1','1');}catch(e){} }
 document.getElementById('tourNext').onclick=()=>{ if(tIdx<TOUR.length-1) tourStep(tIdx+1); else endTour(); };
 document.getElementById('tourSkip').onclick=endTour;
+
+/* ====================== LOCATION + PROXIMITY PINGS ====================== */
+let geoOn=false, geoWatch=null, youMarker=null, arriveFarm=null; const lastPing={};
+function youIcon(){ return L.divIcon({className:'',html:'<div class="youdot"></div>',iconSize:[18,18],iconAnchor:[9,9]}); }
+function haversine(a,b,c,d){ const R=6371000,t=x=>x*Math.PI/180; const dLa=t(c-a),dLo=t(d-b); const u=Math.sin(dLa/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(u)); }
+function setGeoBtn(){ const b=document.getElementById('geoBtn'); if(!b)return; b.classList.toggle('on',geoOn); b.querySelector('.gtxt').textContent=geoOn?'Location on — tracking you':'Share my location'; }
+function toggleGeo(){ if(geoOn){ stopGeo(); toast('Location sharing off'); return; }
+  if(!navigator.geolocation){ toast('Location not supported here'); return; }
+  if('Notification' in window && Notification.permission==='default') try{ Notification.requestPermission(); }catch(e){}
+  geoWatch=navigator.geolocation.watchPosition(onPos,()=>{ toast('Couldn’t get location — allow access'); stopGeo(); },{enableHighAccuracy:true,maximumAge:8000,timeout:20000});
+  geoOn=true; setGeoBtn(); toast('Sharing location — we’ll ping you at a farm');
+}
+function stopGeo(){ if(geoWatch!=null){ navigator.geolocation.clearWatch(geoWatch); geoWatch=null; } geoOn=false; if(youMarker&&map){ map.removeLayer(youMarker); youMarker=null; } setGeoBtn(); }
+function onPos(p){ const la=p.coords.latitude, lo=p.coords.longitude;
+  if(map){ if(!youMarker){ youMarker=L.marker([la,lo],{icon:youIcon(),zIndexOffset:1000,interactive:false}).addTo(map); map.setView([la,lo],Math.max(map.getZoom(),13)); } else youMarker.setLatLng([la,lo]); }
+  let near=null,nd=Infinity; FARMS.forEach(f=>{ if(f.status==='closed')return; const d=haversine(la,lo,f.lat,f.lng); if(d<nd){nd=d;near=f;} });
+  if(near && nd<=300){ const now=Date.now(); if(!(lastPing[near.id]&&now-lastPing[near.id]<1800000)){ lastPing[near.id]=now; pingArrival(near,nd); } }
+}
+function pingArrival(f,dist){ arriveFarm=f;
+  document.getElementById('arriveName').textContent='You’re at '+f.name;
+  document.getElementById('arriveDist').textContent=Math.round(dist)+'m away';
+  document.getElementById('arrive').hidden=false;
+  if('Notification' in window && Notification.permission==='granted'){ try{ new Notification('You’re at '+f.name,{body:'Mark it as Been and post your photo',icon:'/wine-icon-192.png'}); }catch(e){} }
+}
+document.getElementById('geoBtn').onclick=toggleGeo;
+document.getElementById('arriveX').onclick=()=>{ document.getElementById('arrive').hidden=true; };
+document.getElementById('arriveBeen').onclick=()=>{ if(arriveFarm){ setState(arriveFarm.id,'been'); toast(arriveFarm.name+' — marked Been!'); } document.getElementById('arrive').hidden=true; };
+document.getElementById('arrivePhoto').onclick=()=>document.getElementById('arriveFile').click();
+document.getElementById('arriveFile').onchange=function(){ if(arriveFarm&&this.files&&this.files[0]){ if(stOf(arriveFarm.id)!=='been')setState(arriveFarm.id,'been'); addPhoto(arriveFarm.id,this.files[0]); } document.getElementById('arrive').hidden=true; };
 
 /* ====================== INIT ====================== */
 renderFriends();
