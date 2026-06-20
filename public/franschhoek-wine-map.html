@@ -282,6 +282,9 @@
   .friend span{font-size:11.5px;color:var(--muted)}
   .delf{border:none;background:none;color:var(--red);font:600 11.5px Inter;cursor:pointer}
   .muted2{font-size:12.5px;color:var(--muted);margin:9px 0 0}
+  .codebox{width:100%;text-align:center;font:600 14px Inter;color:var(--wine);background:#f7f0f7;border:1.5px dashed rgba(142,90,168,.4);border-radius:12px;padding:13px;cursor:pointer;margin:10px 0}
+  .codebox b{font-family:'Cormorant Garamond',serif;font-size:22px;letter-spacing:2px;color:var(--gold)}
+  .codebox:active{transform:scale(.99)}
 
   /* ---------- Onboarding tour ---------- */
   #tour{position:fixed;inset:0;z-index:7000}
@@ -461,9 +464,10 @@
       </div>
       <div class="youcard">
         <span class="cardttl">Friends</span>
-        <p class="muted2" style="margin-top:0">Invite friends with a link, then compare who's tasted what.</p>
-        <button class="bigbtn primary" id="inviteBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg> Invite a friend</button>
-        <button class="bigbtn" id="addFriendBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add a friend's list</button>
+        <p class="muted2" style="margin-top:0">Share your code with a mate — they add it once in the app and you're both connected. No links needed.</p>
+        <button class="codebox" id="codeBox" title="Tap to copy"></button>
+        <button class="bigbtn primary" id="addCodeBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add a friend's code</button>
+        <button class="bigbtn" id="inviteBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg> Share my code &amp; link</button>
         <div id="friendsList"></div>
       </div>
       <div class="install"><b>Add it to your home screen</b> — tap your browser's Share button, then <b>“Add to Home Screen”</b>. It opens full-screen, just like an app.</div>
@@ -754,6 +758,7 @@ function avatarInner(id){ return AVA[id]||AVA.grape; }
 function tokHtml(p){ if(p&&p.photo) return `<span class="tok"><img src="${p.photo}" alt=""></span>`; return `<span class="tok"><svg viewBox="0 0 24 24">${avatarInner(p&&p.avatar)}</svg></span>`; }
 let profile={name:'',avatar:'grape',photo:''};
 try{ profile=Object.assign(profile,JSON.parse(localStorage.getItem('fhk-profile-v1')||'{}')); }catch(e){}
+if(!profile.code){ profile.code=Math.random().toString(36).slice(2,8).toUpperCase(); try{localStorage.setItem('fhk-profile-v1',JSON.stringify(profile));}catch(e){} }
 function saveProfile(){ try{ localStorage.setItem('fhk-profile-v1',JSON.stringify(profile)); }catch(e){} }
 function readScaled(file,max,cb){ const rd=new FileReader(); rd.onload=()=>{ const img=new Image(); img.onload=()=>{ let w=img.width,h=img.height; const sc=Math.min(1,max/Math.max(w,h)); w=Math.round(w*sc); h=Math.round(h*sc); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.72)); }; img.onerror=()=>toast('Could not read that image'); img.src=rd.result; }; rd.readAsDataURL(file); }
 function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`; }
@@ -959,7 +964,7 @@ function shareUrl(){ const s=Object.entries(states).map(([id,v])=>id+'.'+(v==='b
   const parts=[]; if(s)parts.push('s='+s); if(r)parts.push('r='+r);
   if(profile.name)parts.push('n='+encodeURIComponent(profile.name)); parts.push('a='+(profile.avatar||'grape')); parts.push('u='+uid);
   return location.origin+location.pathname+(parts.length?'#'+parts.join('&'):''); }
-document.getElementById('shareBtn').onclick=async()=>{ const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const text=`I've been to ${been}/${FARMS.length} Franschhoek wine farms 🍷 Here's my map:`;
+document.getElementById('shareBtn').onclick=async()=>{ const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const text=`I've been to ${been}/${FARMS.length} wine farms on WineAbout 🍷 Add me — my friend code is ${profile.code}. Or open my map:`;
   try{ if(navigator.share){await navigator.share({title:'My Franschhoek Wine List',text,url});} else {await navigator.clipboard.writeText(url); toast('Share link copied');} }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied');}catch(_){toast('Copy the URL from the address bar');} } };
 document.getElementById('randomBtn').onclick=()=>{
   const open=FARMS.filter(f=>f.status!=='closed');
@@ -1039,6 +1044,7 @@ function parseShare(url){ const out={states:{},name:'',avatar:'grape'}; try{ con
   if(p.get('n')) out.name=decodeURIComponent(p.get('n')); if(p.get('a')) out.avatar=p.get('a'); if(p.get('u')) out.uid=p.get('u');
  }catch(e){} return out; }
 function renderFriends(){ const el=document.getElementById('friendsList'); if(!el) return;
+  const cb=document.getElementById('codeBox'); if(cb) cb.innerHTML=`Your friend code: <b>${profile.code||'…'}</b> · tap to copy`;
   const mineBeen=FARMS.filter(f=>stOf(f.id)==='been').length;
   const board=[{name:profile.name||'You',been:mineBeen,me:true,prof:profile}, ...friends.map(fr=>({name:fr.name||'Friend',been:Object.keys(fr.states||{}).filter(id=>fr.states[id]==='been').length,prof:fr}))];
   board.sort((a,b)=>b.been-a.been);
@@ -1051,9 +1057,8 @@ function renderFriends(){ const el=document.getElementById('friendsList'); if(!e
   el.querySelectorAll('.delf').forEach(b=>b.onclick=()=>{ friends.splice(+b.dataset.i,1); saveFriends(); renderFriends(); });
 }
 document.getElementById('inviteBtn').onclick=()=>document.getElementById('shareBtn').click();
-document.getElementById('addFriendBtn').onclick=()=>{ const url=prompt('Paste your friend’s WineAbout share link:'); if(!url) return;
-  const d=parseShare(url); if(!Object.keys(d.states).length){ toast('That doesn’t look like a WineAbout link'); return; }
-  const name=(d.name||prompt('Name this friend:')||'Friend').slice(0,24); friends.push({name,avatar:d.avatar||'grape',uid:d.uid||'',states:d.states}); saveFriends(); renderFriends(); toast(name+' added'); };
+document.getElementById('addCodeBtn').onclick=()=>{ const c=prompt('Enter your friend’s 6-character code:'); if(c) supaAddFriendByCode(c); };
+document.getElementById('codeBox').onclick=()=>{ const t=profile.code||''; if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast('Code '+t+' copied — send it to a friend'),()=>toast('Your code: '+t)); else toast('Your code: '+t); };
 
 function renderProfile(){
   const big=document.getElementById('avatarBig'); if(!big) return;
@@ -1092,7 +1097,7 @@ document.getElementById('tourNext').onclick=()=>{ if(tIdx<TOUR.length-1) tourSte
 document.getElementById('tourSkip').onclick=endTour;
 
 /* ====================== LOCATION + PROXIMITY PINGS ====================== */
-let geoOn=false, geoWatch=null, youMarker=null, arriveFarm=null; const lastPing={};
+let geoOn=false, geoWatch=null, youMarker=null, arriveFarm=null, lastPos=null, centerOnFix=false; const lastPing={};
 function youIcon(){ return L.divIcon({className:'',html:'<div class="youdot"></div>',iconSize:[18,18],iconAnchor:[9,9]}); }
 function haversine(a,b,c,d){ const R=6371000,t=x=>x*Math.PI/180; const dLa=t(c-a),dLo=t(d-b); const u=Math.sin(dLa/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(u)); }
 function setGeoBtn(){ const b=document.getElementById('geoBtn'); if(!b)return; b.classList.toggle('on',geoOn); b.title=geoOn?'Location on':'Show where I am'; const tx=b.querySelector('.gtxt'); if(tx) tx.textContent=geoOn?'Location on — tracking you':'Share my location'; }
@@ -1103,8 +1108,9 @@ function toggleGeo(){ if(geoOn){ stopGeo(); toast('Location sharing off'); retur
   geoOn=true; setGeoBtn(); toast('Sharing location — we’ll ping you at a farm');
 }
 function stopGeo(){ if(geoWatch!=null){ navigator.geolocation.clearWatch(geoWatch); geoWatch=null; } geoOn=false; if(youMarker&&map){ map.removeLayer(youMarker); youMarker=null; } setGeoBtn(); }
-function onPos(p){ const la=p.coords.latitude, lo=p.coords.longitude;
-  if(map){ if(!youMarker){ youMarker=L.marker([la,lo],{icon:youIcon(),zIndexOffset:1000,interactive:false}).addTo(map); map.setView([la,lo],Math.max(map.getZoom(),13)); } else youMarker.setLatLng([la,lo]); }
+function onPos(p){ const la=p.coords.latitude, lo=p.coords.longitude; lastPos={lat:la,lng:lo};
+  if(map){ if(!youMarker){ youMarker=L.marker([la,lo],{icon:youIcon(),zIndexOffset:1000,interactive:false}).addTo(map); } else youMarker.setLatLng([la,lo]);
+    if(centerOnFix){ centerOnFix=false; map.flyTo([la,lo],Math.max(map.getZoom(),15),{duration:.6}); } }
   let near=null,nd=Infinity; FARMS.forEach(f=>{ if(f.status==='closed')return; const d=haversine(la,lo,f.lat,f.lng); if(d<nd){nd=d;near=f;} });
   if(near && nd<=300){ const now=Date.now(); if(!(lastPing[near.id]&&now-lastPing[near.id]<1800000)){ lastPing[near.id]=now; pingArrival(near,nd); if(liveOn())supaArrive(near); } }
 }
@@ -1114,7 +1120,12 @@ function pingArrival(f,dist){ arriveFarm=f;
   document.getElementById('arrive').hidden=false;
   if('Notification' in window && Notification.permission==='granted'){ try{ new Notification('You’re at '+f.name,{body:'Mark it as Been and post your photo',icon:'/wine-icon-192.png'}); }catch(e){} }
 }
-document.getElementById('geoBtn').onclick=toggleGeo;
+function locateMe(){
+  if(!geoOn){ centerOnFix=true; toggleGeo(); return; }        // turn on, then centre on first fix
+  if(lastPos){ if(currentScreen!=='map') showScreen('map'); map.flyTo([lastPos.lat,lastPos.lng],Math.max(map.getZoom(),15),{duration:.6}); if(youMarker) youMarker.openPopup&&youMarker.openPopup(); }
+  else toast('Getting your location…');
+}
+document.getElementById('geoBtn').onclick=locateMe;
 document.getElementById('arriveX').onclick=()=>{ document.getElementById('arrive').hidden=true; };
 document.getElementById('arriveBeen').onclick=()=>{ if(arriveFarm){ setState(arriveFarm.id,'been'); toast(arriveFarm.name+' — marked Been!'); } document.getElementById('arrive').hidden=true; };
 document.getElementById('arrivePhoto').onclick=()=>document.getElementById('arriveFile').click();
@@ -1132,13 +1143,32 @@ async function supaInit(){ if(!SUPA.url||!SUPA.anon) return; try{
   const m=await import('https://esm.sh/@supabase/supabase-js@2');
   sb=m.createClient(SUPA.url,SUPA.anon,{realtime:{params:{eventsPerSecond:2}}});
   await supaSyncPlayer(); supaSubscribe();
+  await supaCheckLinks();                          // pull anyone who added me
+  for(const fr of friends){ if(fr.uid) supaAddLink(fr.uid); }  // announce me to my friends (makes it mutual)
 }catch(e){ sb=null; console.warn('WineAbout live disabled:',e); } }
-async function supaSyncPlayer(){ if(!sb)return; try{ await sb.from('wa_players').upsert({uid,name:profile.name||'Someone',avatar:profile.avatar||'grape',been:myBeen(),updated_at:new Date().toISOString()}); }catch(e){} }
+async function supaSyncPlayer(){ if(!sb)return; try{ await sb.from('wa_players').upsert({uid,code:profile.code||'',name:profile.name||'Someone',avatar:profile.avatar||'grape',been:myBeen(),states:states,updated_at:new Date().toISOString()}); }catch(e){} }
+async function supaAddFriendByCode(code){ code=(code||'').trim().toUpperCase(); if(!code) return;
+  if(code===(profile.code||'')){ toast('That’s your own code!'); return; }
+  if(!sb){ toast('Connecting… try again in a few seconds'); return; }
+  try{ const {data}=await sb.from('wa_players').select('*').eq('code',code).maybeSingle();
+    if(!data){ toast('No one found with code '+code); return; }
+    if(friends.some(fr=>fr.uid===data.uid)){ toast('You’re already friends with '+(data.name||'them')); return; }
+    await supaAddFriendByUid(data.uid,data.name,data.avatar); await supaAddLink(data.uid);
+  }catch(e){ toast('Could not look that up'); } }
+async function supaAddLink(fuid){ if(!sb||!fuid||fuid===uid)return; try{ await sb.from('wa_links').upsert({from_uid:uid,to_uid:fuid,name:profile.name||'Someone',avatar:profile.avatar||'grape'}); }catch(e){} }
+async function supaAddFriendByUid(fuid,name,avatar){ if(!sb||!fuid||fuid===uid) return; if(friends.some(fr=>fr.uid===fuid)) return;
+  let st={}, nm=name||'Friend', av=avatar||'grape';
+  try{ const {data}=await sb.from('wa_players').select('*').eq('uid',fuid).maybeSingle(); if(data){ st=data.states||{}; nm=data.name||nm; av=data.avatar||av; } }catch(e){}
+  if(friends.some(fr=>fr.uid===fuid)) return;
+  friends.push({name:nm,avatar:av,uid:fuid,states:st}); saveFriends(); renderFriends(); toast('Now friends with '+nm,3200);
+}
+async function supaCheckLinks(){ if(!sb)return; try{ const {data}=await sb.from('wa_links').select('*').eq('to_uid',uid); if(data) for(const r of data){ await supaAddFriendByUid(r.from_uid,r.name,r.avatar); } }catch(e){} }
 async function supaArrive(f){ if(!sb)return; try{ await sb.from('wa_presence').upsert({uid,name:profile.name||'Someone',avatar:profile.avatar||'grape',farm_id:f.id,farm_name:f.name,lat:f.lat,lng:f.lng,at:new Date().toISOString()}); }catch(e){} }
 function friendUids(){ return friends.map(fr=>fr.uid).filter(Boolean); }
 function supaSubscribe(){ if(!sb)return;
   sb.channel('wa-presence').on('postgres_changes',{event:'*',schema:'public',table:'wa_presence'},(p)=>{ const r=p.new; if(!r||r.uid===uid||!friendUids().includes(r.uid))return; onFriendPresence(r); }).subscribe();
-  sb.channel('wa-players').on('postgres_changes',{event:'*',schema:'public',table:'wa_players'},(p)=>{ const r=p.new; if(!r)return; const fr=friends.find(x=>x.uid===r.uid); if(fr){ fr.liveBeen=r.been; if(r.name)fr.name=r.name; if(r.avatar)fr.avatar=r.avatar; saveFriends(); renderFriends(); } }).subscribe();
+  sb.channel('wa-players').on('postgres_changes',{event:'*',schema:'public',table:'wa_players'},(p)=>{ const r=p.new; if(!r)return; const fr=friends.find(x=>x.uid===r.uid); if(fr){ if(r.name)fr.name=r.name; if(r.avatar)fr.avatar=r.avatar; if(r.states)fr.states=r.states; saveFriends(); renderFriends(); } }).subscribe();
+  sb.channel('wa-links').on('postgres_changes',{event:'*',schema:'public',table:'wa_links'},(p)=>{ const r=p.new; if(r&&r.to_uid===uid) supaAddFriendByUid(r.from_uid,r.name,r.avatar); }).subscribe();
 }
 function onFriendPresence(r){
   if(map){ const ic=L.divIcon({className:'',html:`<div class="friendpin">${tokHtml({name:r.name,avatar:r.avatar})}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
