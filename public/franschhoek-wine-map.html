@@ -155,6 +155,13 @@
   .stars .ico{width:23px;height:23px;fill:none;stroke:#d9cab0;stroke-width:1.5;transition:.14s}
   .stars button.on .ico{fill:var(--gold);stroke:var(--gold)}
   .stars button:active{transform:scale(.88)}
+  .tastelist{margin-top:10px}
+  .tastehdr{display:flex;justify-content:space-between;align-items:center;font:700 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+  .tasteitem{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin-bottom:6px;font:600 13px Inter;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px 11px;cursor:pointer;color:var(--ink);transition:.14s var(--ease)}
+  .tasteitem .ico{width:16px;height:16px;color:#cdbb9f;flex:0 0 auto}
+  .tasteitem:active{transform:scale(.99)}
+  .tasteitem.on{background:#f6fbf4;border-color:var(--green);color:var(--green)}
+  .tasteitem.on .ico{color:var(--green)}
   .note{width:100%;margin-top:5px;font:500 13px Inter;padding:9px 11px;border-radius:10px;border:1.5px solid var(--line);background:#fdfaf5;color:var(--ink);resize:vertical;min-height:38px}
   .note:focus{outline:none;border-color:var(--gold-soft)}
 
@@ -727,6 +734,11 @@ let photos={}, friends=[];
 try{ photos=JSON.parse(localStorage.getItem('fhk-photos-v1')||'{}'); }catch(e){}
 try{ friends=JSON.parse(localStorage.getItem('fhk-friends-v1')||'[]'); }catch(e){}
 function savePhotos(){ try{ localStorage.setItem('fhk-photos-v1',JSON.stringify(photos)); return true; }catch(e){ return false; } }
+let tasted={}; try{ tasted=JSON.parse(localStorage.getItem('fhk-tasted-v1')||'{}'); }catch(e){}
+function saveTasted(){ try{ localStorage.setItem('fhk-tasted-v1',JSON.stringify(tasted)); }catch(e){} }
+function wineList(f){ return winesOf(f).split(',').map(s=>s.trim()).filter(Boolean); }
+function isTasted(id,w){ return !!(tasted[id]&&tasted[id][w]); }
+function toggleTaste(id,w){ tasted[id]=tasted[id]||{}; if(tasted[id][w])delete tasted[id][w]; else { tasted[id][w]=1; buzz(12); } if(!Object.keys(tasted[id]).length)delete tasted[id]; saveTasted(); renderActive(); }
 function saveFriends(){ try{ localStorage.setItem('fhk-friends-v1',JSON.stringify(friends)); }catch(e){} }
 /* Monopoly-style avatar tokens */
 const AVA={
@@ -823,6 +835,9 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
         ${(photos[f.id]||[]).map((src,i)=>`<div class="photo"><img src="${src}" data-i="${i}" alt="your photo"><button class="delp" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}
         <label class="addphoto">${IC.cam}Post<input type="file" accept="image/*" hidden></label>
       </div>
+      ${(()=>{ const wl=wineList(f); if(!wl.length) return ''; const cnt=wl.filter(w=>isTasted(f.id,w)).length;
+        return `<div class="tastelist"><div class="tastehdr"><span>Tick off what you tasted</span><span>${cnt}/${wl.length}</span></div>`+
+          wl.map(w=>`<button class="tasteitem ${isTasted(f.id,w)?'on':''}" data-w="${w.replace(/"/g,'&quot;')}">${IC.check}<span>${w}</span></button>`).join('')+`</div>`; })()}
     </div>
     <div class="actions">
       <span class="locate">${IC.pin} Map</span>
@@ -837,6 +852,7 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
   el.querySelectorAll('.photos img').forEach(im=>im.onclick=()=>openLightbox(im.getAttribute('src')));
   el.querySelectorAll('.delp').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); removePhoto(f.id,+b.dataset.i); });
   const fi=el.querySelector('.addphoto input'); if(fi) fi.onchange=()=>{ if(fi.files&&fi.files[0]) addPhoto(f.id,fi.files[0]); };
+  el.querySelectorAll('.tasteitem').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); toggleTaste(f.id,b.dataset.w); });
   return el;
 }
 function renderList(container,mode){ container.innerHTML=''; let shown=0;
