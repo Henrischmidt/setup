@@ -63,9 +63,12 @@
   .search .cx{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:#efe3d4;color:var(--wine);width:26px;height:26px;border-radius:50%;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center}
   .search .cx.show{display:flex}
 
-  .arearow{display:none;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-  .arearow::-webkit-scrollbar{display:none}
+  .arearow,.regionrow{display:none;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .arearow::-webkit-scrollbar,.regionrow::-webkit-scrollbar{display:none}
   body[data-screen="map"] .arearow,body[data-screen="explore"] .arearow,body[data-screen="been"] .arearow,body[data-screen="want"] .arearow{display:flex}
+  body[data-screen="map"] .regionrow,body[data-screen="explore"] .regionrow,body[data-screen="been"] .regionrow,body[data-screen="want"] .regionrow{display:flex}
+  .rchip{flex:0 0 auto;font:700 12.5px Inter;cursor:pointer;border-radius:99px;padding:7px 14px;border:1.5px solid var(--line);background:#fff;color:var(--wine);white-space:nowrap;transition:.16s var(--ease)}
+  .rchip.on{background:var(--wine);color:#fff;border-color:var(--wine)}
   .chip{flex:0 0 auto;font:600 11.5px Inter;cursor:pointer;border-radius:99px;padding:6px 11px;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.18s var(--ease);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   .chip .dot{width:8px;height:8px;border-radius:50%}
   .chip.on{color:#fff;border-color:transparent}
@@ -365,11 +368,8 @@
       <input id="search" type="search" placeholder="Search the valley…" autocomplete="off" />
       <button class="cx" id="clearx" aria-label="Clear">✕</button>
     </div>
-    <div class="arearow" id="areaFilters">
-      <button class="chip c-town on" data-cluster="town"><span class="dot" style="background:#6b1f3a"></span>Town &amp; Pass</button>
-      <button class="chip c-valley on" data-cluster="valley"><span class="dot" style="background:#5a6b3b"></span>Happy Valley</button>
-      <button class="chip c-drakenstein on" data-cluster="drakenstein"><span class="dot" style="background:#3f6fa0"></span>Groot Drakenstein</button>
-    </div>
+    <div class="regionrow" id="regionRow"></div>
+    <div class="arearow" id="areaFilters"></div>
   </div>
 
   <main>
@@ -537,12 +537,58 @@ const FARMS = [
   {id:'bo-la-motte', name:'Bo La Motte', cluster:'town', lat:-33.9160, lng:19.1080, tag:'Rustic & a chapel', fact:'Working farm with rustic tastings and a little chapel up the La Motte road.'},
   {id:'blueberry-hill', name:'Blueberry Hill', cluster:'town', lat:-33.9180, lng:19.1150, tag:'Berries & views', fact:'Laid-back farm pairing its wines with namesake berries and big valley views.'},
   {id:'haut-espoir', name:'Haut Espoir', cluster:'town', lat:-33.9280, lng:19.1000, tag:'Sustainable & high', fact:'Sustainability-minded boutique farm high on the southern slopes.'},
+
+  // ===== STELLENBOSCH (curated selection of icons) =====
+  {id:'spier', name:'Spier', cluster:'stellenbosch', lat:-33.9764, lng:18.7861, tag:'Family destination · 1692', fact:'One of the oldest Cape farms — eagle encounters, farm-to-table dining and the Creative Block blends.', wines:'Creative Block blends, Chenin Blanc, 21 Gables'},
+  {id:'delaire-graff', name:'Delaire Graff', cluster:'stellenbosch', lat:-33.9217, lng:18.9192, tag:'Jewel of the Cape', fact:'Luxe Helshoogte estate with art, fine dining and polished Banghoek reds.', wines:'Banghoek Reserve, Botmaskop, Cabernet Franc Rosé'},
+  {id:'tokara', name:'Tokara', cluster:'stellenbosch', lat:-33.9189, lng:18.9244, tag:'Views & Chardonnay', fact:'Modern hilltop estate with art, olive oil and a top restaurant.', wines:'Reserve Collection Chardonnay & Sauvignon, Director’s Reserve'},
+  {id:'thelema', name:'Thelema', cluster:'stellenbosch', lat:-33.9097, lng:18.9264, tag:'Mountain vineyards', fact:'Pioneering high-altitude estate on the Helshoogte Pass.', wines:'Cabernet Sauvignon, Mountain wines, The Mint Cabernet'},
+  {id:'rust-en-vrede', name:'Rust en Vrede', cluster:'stellenbosch', lat:-33.9628, lng:18.8775, tag:'Reds only', fact:'Renowned reds-only estate; a flagship was poured at Mandela’s Nobel banquet.', wines:'Estate red blend, Single Vineyard Syrah & Cabernet'},
+  {id:'kanonkop', name:'Kanonkop', cluster:'stellenbosch', lat:-33.8483, lng:18.8569, tag:'“First Growth”', fact:'Simonsberg legend regarded as a Cape first-growth.', wines:'Paul Sauer, Black Label Pinotage, Kadette'},
+  {id:'meerlust', name:'Meerlust', cluster:'stellenbosch', lat:-34.0153, lng:18.7500, tag:'Home of Rubicon', fact:'Historic family estate behind the iconic Rubicon Bordeaux-style blend.', wines:'Rubicon, Pinot Noir, Chardonnay'},
+  {id:'waterford', name:'Waterford', cluster:'stellenbosch', lat:-33.9747, lng:18.8908, tag:'Wine & chocolate', fact:'Courtyard estate famed for its wine-and-chocolate pairing.', wines:'The Jem, Kevin Arnold Shiraz, Chardonnay'},
+  {id:'jordan', name:'Jordan', cluster:'stellenbosch', lat:-33.9908, lng:18.7475, tag:'Hilltop cellar', fact:'Family estate with a celebrated restaurant and benchmark whites.', wines:'Nine Yards Chardonnay, Cobblers Hill, The Prospector Syrah'},
+  {id:'warwick', name:'Warwick', cluster:'stellenbosch', lat:-33.8369, lng:18.8511, tag:'The First Lady', fact:'Family estate known for Trilogy and famously family-friendly picnics.', wines:'Trilogy, The First Lady Cabernet, Three Cape Ladies'},
+  {id:'simonsig', name:'Simonsig', cluster:'stellenbosch', lat:-33.8536, lng:18.8367, tag:'Kaapse Vonkel MCC', fact:'Made South Africa’s first méthode Cap Classique, Kaapse Vonkel.', wines:'Kaapse Vonkel MCC, Tiara, Redhill Pinotage'},
+  {id:'delheim', name:'Delheim', cluster:'stellenbosch', lat:-33.8772, lng:18.8961, tag:'Simonsberg classic', fact:'Much-loved family estate on the Simonsberg with hearty food and reds.', wines:'Grand Reserve, Vera Cruz Shiraz, Pinotage'},
+
+  // ===== PAARL (curated selection) =====
+  {id:'fairview', name:'Fairview', cluster:'paarl', lat:-33.7686, lng:18.9258, tag:'Goats & wine', fact:'Famous for its goat tower, cheeses and the Goats do Roam range.', wines:'Goats do Roam, Pinotage, La Capra'},
+  {id:'spice-route', name:'Spice Route', cluster:'paarl', lat:-33.7706, lng:18.9203, tag:'Food & wine hub', fact:'Buzzy destination with craft beer, charcuterie, chocolate and bold reds.', wines:'Chakalaka, Swartland Syrah, Chenin Blanc'},
+  {id:'nederburg', name:'Nederburg', cluster:'paarl', lat:-33.7561, lng:18.9783, tag:'Heritage · 1791', fact:'Historic estate behind the famous Nederburg Auction.', wines:'Two Centuries, The Brew Master, Heritage Heroes'},
+  {id:'glen-carlou', name:'Glen Carlou', cluster:'paarl', lat:-33.8089, lng:18.9469, tag:'Chardonnay', fact:'Acclaimed for Chardonnay and the Gravel Quarry Cabernet, with valley views.', wines:'Quartz Stone Chardonnay, Gravel Quarry Cabernet, Grand Classique'},
+  {id:'avondale', name:'Avondale', cluster:'paarl', lat:-33.7986, lng:18.9000, tag:'Organic & biodynamic', fact:'Certified-organic estate with its “BioLOGIC” farming and an eco wine safari.', wines:'La Luna, Cyclus, Samsara Syrah'},
+  {id:'laborie', name:'Laborie', cluster:'paarl', lat:-33.7456, lng:18.9583, tag:'Cap Classique', fact:'KWV’s historic Paarl manor estate, strong on Cap Classique.', wines:'Blanc de Blancs MCC, Pinotage, Jean Taillefert'},
+  {id:'rhebokskloof', name:'Rhebokskloof', cluster:'paarl', lat:-33.6864, lng:18.9358, tag:'Mountain amphitheatre', fact:'Scenic estate against the Paardeberg with relaxed tastings and dining.', wines:'Black Marble Syrah, Chardonnay, MCC'},
+  {id:'vondeling', name:'Vondeling', cluster:'paarl', lat:-33.6600, lng:18.8600, tag:'Voor-Paardeberg', fact:'Hillside estate with a landmark chapel and characterful Rhône-style blends.', wines:'Monsonia, Babiana, Petit Blanc'},
+
+  // ===== CONSTANTIA (curated selection) =====
+  {id:'groot-constantia', name:'Groot Constantia', cluster:'constantia', lat:-34.0277, lng:18.4233, tag:'SA’s oldest · 1685', fact:'South Africa’s oldest wine estate, famed for the historic Grand Constance dessert wine.', wines:'Grand Constance, Gouverneurs Reserve, Pinotage'},
+  {id:'klein-constantia', name:'Klein Constantia', cluster:'constantia', lat:-34.0397, lng:18.4189, tag:'Vin de Constance', fact:'Home of the legendary Vin de Constance — the sweet wine once adored by Napoleon.', wines:'Vin de Constance, Estate Sauvignon Blanc, Metis'},
+  {id:'buitenverwachting', name:'Buitenverwachting', cluster:'constantia', lat:-34.0436, lng:18.4205, tag:'Bordeaux blends', fact:'Elegant estate known for Christine and crisp Sauvignon Blanc.', wines:'Christine, Sauvignon Blanc, Husseys Vlei'},
+  {id:'steenberg', name:'Steenberg', cluster:'constantia', lat:-34.0742, lng:18.4258, tag:'MCC & Sauvignon', fact:'The Cape’s oldest farm in the Constantia valley, big on Cap Classique.', wines:'1682 MCC, Lady R, Black Swan Sauvignon Blanc'},
+  {id:'constantia-glen', name:'Constantia Glen', cluster:'constantia', lat:-34.0486, lng:18.4083, tag:'Mountain blends', fact:'Hillside estate with knockout views and Bordeaux-style Five & Three.', wines:'Five, Three, Sauvignon Blanc'},
+  {id:'eagles-nest', name:'Eagles’ Nest', cluster:'constantia', lat:-34.0531, lng:18.4067, tag:'Shiraz & Viognier', fact:'Boutique family estate celebrated for Shiraz, Merlot and Viognier.', wines:'Shiraz, Merlot, Viognier'},
+  {id:'beau-constantia', name:'Beau Constantia', cluster:'constantia', lat:-34.0586, lng:18.4106, tag:'Views & Cape blends', fact:'Dramatic modern tasting room perched high over the valley.', wines:'Lucca, Aidan, Cecily Viognier'},
+  {id:'silvermist', name:'Silvermist', cluster:'constantia', lat:-34.0625, lng:18.4000, tag:'Organic mountain estate', fact:'Misty, certified-organic estate high above Constantia Nek.', wines:'Cabernet Franc, Sauvignon Blanc, Shiraz'},
 ];
 const CLUSTERS = {
   town:{label:'Franschhoek Town & the Pass', color:'#6b1f3a'},
   valley:{label:'Happy Valley & Robertsvlei', color:'#5a6b3b'},
   drakenstein:{label:'Groot Drakenstein & Simondium', color:'#3f6fa0'},
+  stellenbosch:{label:'Stellenbosch', color:'#7a3b2e'},
+  paarl:{label:'Paarl', color:'#9a6b1f'},
+  constantia:{label:'Constantia', color:'#2f6f6b'},
 };
+const REGIONS={
+  franschhoek:{label:'Franschhoek', clusters:['town','valley','drakenstein']},
+  stellenbosch:{label:'Stellenbosch', clusters:['stellenbosch']},
+  paarl:{label:'Paarl', clusters:['paarl']},
+  constantia:{label:'Constantia', clusters:['constantia']},
+};
+const CLUSTER_REGION={}; Object.entries(REGIONS).forEach(([r,o])=>o.clusters.forEach(c=>CLUSTER_REGION[c]=r));
+function regionOf(f){ return CLUSTER_REGION[f.cluster]||'franschhoek'; }
+let activeRegion='franschhoek';
 const STATE = { none:{color:'#c0392b'}, want:{color:'#dd8a2c'}, been:{color:'#3f8a45'} };
 
 /* Signature wines / what to taste (indicative — ranges & labels can change) */
@@ -600,7 +646,7 @@ const WINES = {
   'blueberry-hill':'Shiraz, Chardonnay (small farm)',
   'haut-espoir':'Sauvignon Blanc, Syrah, The Cluster blends',
 };
-function winesOf(f){ return WINES[f.id]||''; }
+function winesOf(f){ return WINES[f.id]||f.wines||''; }
 /* Year established (confident, well-documented estates only) */
 const EST = {
   'haute-cabriere':1694,'chamonix':1688,'la-bri':1694,'boekenhoutskloof':1776,'grande-provence':1694,
@@ -656,16 +702,17 @@ function saveFriends(){ try{ localStorage.setItem('fhk-friends-v1',JSON.stringif
 function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`; }
 
 /* ====================== FILTER ====================== */
-const activeClusters=new Set(Object.keys(CLUSTERS));
+let activeClusters=new Set(REGIONS['franschhoek'].clusters);
 let searchQ='';
-function matchSearch(f){ return !searchQ || f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ); }
+function matchSearch(f){ return !searchQ || f.name.toLowerCase().includes(searchQ) || f.tag.toLowerCase().includes(searchQ) || f.fact.toLowerCase().includes(searchQ) || winesOf(f).toLowerCase().includes(searchQ); }
 function listVisible(f,mode){
+  if(regionOf(f)!==activeRegion) return false;
   if(!activeClusters.has(f.cluster)) return false;
   if(mode==='notbeen'){ if(stOf(f.id)==='been') return false; }
   else if(mode!=='all' && stOf(f.id)!==mode) return false;
   return matchSearch(f);
 }
-function mapVisible(f){ return activeClusters.has(f.cluster) && matchSearch(f); }
+function mapVisible(f){ return regionOf(f)===activeRegion && activeClusters.has(f.cluster) && matchSearch(f); }
 
 /* ====================== MAP ====================== */
 const MAP_OK=(typeof L!=='undefined')&&(navigator.onLine!==false);
@@ -747,7 +794,7 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
   return el;
 }
 function renderList(container,mode){ container.innerHTML=''; let shown=0;
-  Object.entries(CLUSTERS).forEach(([key,info])=>{ let items=FARMS.filter(f=>f.cluster===key&&listVisible(f,mode)); if(!items.length)return; shown+=items.length;
+  REGIONS[activeRegion].clusters.forEach(key=>{ const info=CLUSTERS[key]; let items=FARMS.filter(f=>f.cluster===key&&listVisible(f,mode)); if(!items.length)return; shown+=items.length;
     const sec=document.createElement('div'); sec.className='cluster';
     if(mode==='want'){ items=routeOrder(items);
       sec.innerHTML=`<h3>${IC.route} ${info.label} · route (${items.length})</h3>`;
@@ -778,8 +825,8 @@ function renderActive(){
   if(currentScreen==='explore') renderList(document.getElementById('list-explore'),'notbeen');
   else if(currentScreen==='been') renderList(document.getElementById('list-been'),'been');
   else if(currentScreen==='want') renderList(document.getElementById('list-want'),'want');
-  if(currentScreen==='explore'){ let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const left=FARMS.length-been;
-    document.getElementById('exploreCount').textContent=`${left} still to visit · ${been} done`; }
+  if(currentScreen==='explore'){ const rf=FARMS.filter(f=>regionOf(f)===activeRegion); const been=rf.filter(f=>stOf(f.id)==='been').length;
+    document.getElementById('exploreCount').textContent=`${REGIONS[activeRegion].label}: ${rf.length-been} to visit · ${been} done`; }
 }
 function showScreen(name){
   currentScreen=name; document.body.dataset.screen=name;
@@ -803,23 +850,22 @@ function grapeSVG(id,frac,size){ const fy=30-(30*frac);
     <g fill="#8e5aa8" clip-path="url(#gc-${id})">${GRAPE_CIRCLES}</g>
   </svg>`;
 }
-function updateProgress(){ const t=FARMS.length; let been=0,want=0; const byc={};
-  Object.keys(CLUSTERS).forEach(k=>byc[k]={been:0,total:0});
-  FARMS.forEach(f=>{const s=stOf(f.id); byc[f.cluster].total++; if(s==='been'){been++;byc[f.cluster].been++;} else if(s==='want')want++;});
+function updateProgress(){ const t=FARMS.length; let been=0,want=0; const byR={};
+  Object.keys(REGIONS).forEach(r=>byR[r]={been:0,total:0});
+  FARMS.forEach(f=>{const s=stOf(f.id); const r=regionOf(f); byR[r].total++; if(s==='been'){been++;byR[r].been++;} else if(s==='want')want++;});
   document.getElementById('tBeen').textContent=been; document.getElementById('tWant').textContent=want; document.getElementById('tNone').textContent=t-been-want;
   const frac=been/t; document.getElementById('barFill').style.width=Math.round(frac*100)+'%';
   let b=BADGES[0][1]; for(const[n,txt] of BADGES){if(frac>=n)b=txt;}
   const rated=Object.values(ratings); if(rated.length){const avg=(rated.reduce((a,c)=>a+c,0)/rated.length).toFixed(1); b+=` · ★ ${avg} avg`;}
   document.getElementById('badge').textContent=b;
   document.getElementById('youSub').textContent=`You've been to ${been} of ${t} farms`;
-  // gamified grape in the top bar
   document.getElementById('grapeBtn').innerHTML=grapeSVG('top',frac,30);
-  // per-region breakdown popover
-  let h=`<div class="reghead">${Math.round(frac*100)}% of Franschhoek tasted<span>${been} of ${t} farms</span></div>`;
-  Object.entries(CLUSTERS).forEach(([k,info])=>{ const c=byc[k]; const rf=c.total?c.been/c.total:0;
-    h+=`<div class="regrow">${grapeSVG('r'+k,rf,30)}<div class="reginfo"><b>${info.label}</b><span>${c.been}/${c.total} · ${Math.round(rf*100)}%</span></div></div>`; });
-  h+=`<div class="regsoon">Stellenbosch · Paarl · Constantia — coming soon</div>`;
-  document.getElementById('regions').innerHTML=h;
+  // per-region breakdown popover (tap a region to switch to it)
+  let h=`<div class="reghead">${Math.round(frac*100)}% tasted<span>${been} of ${t} farms across the Cape</span></div>`;
+  Object.entries(REGIONS).forEach(([k,o])=>{ const c=byR[k]; const rf=c.total?c.been/c.total:0;
+    h+=`<div class="regrow${k===activeRegion?' active':''}" data-region="${k}">${grapeSVG('r'+k,rf,30)}<div class="reginfo"><b>${o.label}</b><span>${c.been}/${c.total} · ${Math.round(rf*100)}%</span></div></div>`; });
+  const rg=document.getElementById('regions'); rg.innerHTML=h;
+  rg.querySelectorAll('.regrow').forEach(r=>r.onclick=()=>{ switchRegion(r.dataset.region); rg.hidden=true; });
   renderFriends();
 }
 
@@ -844,8 +890,8 @@ document.getElementById('randomBtn').onclick=()=>{
   const todo=open.filter(f=>stOf(f.id)==='none');
   const pool=todo.length?todo:open;
   const f=pool[Math.floor(Math.random()*pool.length)];
-  showScreen('map'); flyTo(f);                 // opens the farm, centred
-  setTimeout(()=>toast(quipFor(f),3400),780);  // quirky fact about the place
+  showScreen('map'); if(regionOf(f)!==activeRegion) switchRegion(regionOf(f)); flyTo(f);
+  setTimeout(()=>toast(quipFor(f),3400),820);  // quirky fact about the place
 };
 document.getElementById('resetBtn').onclick=()=>{ if(!confirm('Clear all your marks, ratings and notes?'))return; states={};ratings={};notes={};save(); history.replaceState(null,'',location.pathname); FARMS.forEach(f=>{if(markers[f.id])markers[f.id].setIcon(pinIcon(f));}); updateProgress(); renderActive(); if(currentScreen==='map')filterMapMarkers(); toast('Everything reset'); };
 
@@ -857,13 +903,29 @@ searchEl.oninput=()=>{ searchQ=searchEl.value.trim().toLowerCase(); clearx.class
   if(!LIST_SCREENS.includes(currentScreen)) showScreen('explore'); else renderActive(); };
 clearx.onclick=()=>{ searchEl.value=''; searchQ=''; clearx.classList.remove('show'); renderActive(); searchEl.focus(); };
 
-document.querySelectorAll('#areaFilters .chip').forEach(chip=>chip.onclick=()=>{ const c=chip.dataset.cluster; if(activeClusters.has(c))activeClusters.delete(c); else activeClusters.add(c); if(activeClusters.size===0)Object.keys(CLUSTERS).forEach(k=>activeClusters.add(k));
-  document.querySelectorAll('#areaFilters .chip').forEach(ch=>{const on=activeClusters.has(ch.dataset.cluster); ch.classList.toggle('on',on); ch.classList.toggle('off',!on);});
-  if(currentScreen==='map')filterMapMarkers(); else renderActive(); });
+const CLUSTER_SHORT={town:'Town & Pass',valley:'Happy Valley',drakenstein:'Groot Drakenstein'};
+function buildRegionChips(){ const el=document.getElementById('regionRow');
+  el.innerHTML=Object.entries(REGIONS).map(([k,o])=>`<button class="rchip ${k===activeRegion?'on':''}" data-region="${k}">${o.label}</button>`).join('');
+  el.querySelectorAll('.rchip').forEach(b=>b.onclick=()=>switchRegion(b.dataset.region));
+}
+function buildAreaChips(){ const el=document.getElementById('areaFilters'); const cls=REGIONS[activeRegion].clusters;
+  if(cls.length<2){ el.style.display='none'; el.innerHTML=''; return; } el.style.display='';
+  el.innerHTML=cls.map(c=>`<button class="chip c-${c} ${activeClusters.has(c)?'on':'off'}" data-cluster="${c}"><span class="dot" style="background:${CLUSTERS[c].color}"></span>${CLUSTER_SHORT[c]||CLUSTERS[c].label}</button>`).join('');
+  el.querySelectorAll('.chip').forEach(chip=>chip.onclick=()=>{ const c=chip.dataset.cluster;
+    if(activeClusters.has(c))activeClusters.delete(c); else activeClusters.add(c);
+    if(!cls.some(x=>activeClusters.has(x))) cls.forEach(x=>activeClusters.add(x));
+    el.querySelectorAll('.chip').forEach(ch=>{const on=activeClusters.has(ch.dataset.cluster); ch.classList.toggle('on',on); ch.classList.toggle('off',!on);});
+    if(currentScreen==='map')filterMapMarkers(); else renderActive(); });
+}
+function switchRegion(r){ if(!REGIONS[r])return; activeRegion=r; activeClusters=new Set(REGIONS[r].clusters);
+  buildRegionChips(); buildAreaChips();
+  if(map){ const fs=FARMS.filter(f=>regionOf(f)===r); filterMapMarkers(); if(fs.length) map.fitBounds(L.latLngBounds(fs.map(f=>[f.lat,f.lng])).pad(0.2)); }
+  if(currentScreen!=='map') renderActive();
+}
 
 document.getElementById('routeBtn').onclick=()=>{
-  const want=routeOrder(FARMS.filter(f=>stOf(f.id)==='want'));
-  if(!want.length){ toast('Add some farms to Want to go first'); return; }
+  const want=routeOrder(FARMS.filter(f=>stOf(f.id)==='want' && regionOf(f)===activeRegion));
+  if(!want.length){ toast('Add farms in '+REGIONS[activeRegion].label+' to Want to go first'); return; }
   const pts=want.map(f=>`${f.lat},${f.lng}`); const dest=pts[pts.length-1]; const wp=pts.slice(0,-1).join('|');
   let url=`https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
   if(wp) url+=`&waypoints=${encodeURIComponent(wp)}`;
@@ -970,10 +1032,12 @@ document.getElementById('arrivePhoto').onclick=()=>document.getElementById('arri
 document.getElementById('arriveFile').onchange=function(){ if(arriveFarm&&this.files&&this.files[0]){ if(stOf(arriveFarm.id)!=='been')setState(arriveFarm.id,'been'); addPhoto(arriveFarm.id,this.files[0]); } document.getElementById('arrive').hidden=true; };
 
 /* ====================== INIT ====================== */
+buildRegionChips(); buildAreaChips();
 renderFriends();
 document.getElementById('farmCount').textContent=FARMS.length;
 updateProgress();
-if(map){ map.whenReady(()=>{ map.invalidateSize(); map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12)); }); }
+if(map){ map.whenReady(()=>{ map.invalidateSize(); filterMapMarkers();
+  const fs=FARMS.filter(f=>regionOf(f)===activeRegion); map.fitBounds(L.latLngBounds(fs.map(f=>[f.lat,f.lng])).pad(0.15)); }); }
 
 /* Splash: drive in for ~3s, then reveal the app (tap to skip) */
 const splash=document.getElementById('splash');
