@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>WineAbout · Franschhoek</title>
 <meta name="description" content="WineAbout — every wine farm in the Franschhoek Valley. Been there, want to go, rate & share." />
 <meta property="og:title" content="WineAbout · Franschhoek Wine Farms" />
@@ -65,7 +65,7 @@
 
   .arearow,.regionrow{display:none;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
   .arearow::-webkit-scrollbar,.regionrow::-webkit-scrollbar{display:none}
-  body[data-screen="map"] .arearow,body[data-screen="explore"] .arearow,body[data-screen="been"] .arearow,body[data-screen="want"] .arearow{display:flex}
+  body[data-screen="map"] .arearow,body[data-screen="explore"] .arearow{display:flex}
   body[data-screen="map"] .regionrow,body[data-screen="explore"] .regionrow,body[data-screen="been"] .regionrow,body[data-screen="want"] .regionrow{display:flex}
   .rchip{flex:0 0 auto;font:700 12.5px Inter;cursor:pointer;border-radius:99px;padding:7px 14px;border:1.5px solid var(--line);background:#fff;color:var(--wine);white-space:nowrap;transition:.16s var(--ease)}
   .rchip.on{background:var(--wine);color:#fff;border-color:var(--wine)}
@@ -711,14 +711,8 @@ const STORE_KEY='fhk-wine-passport-v3';
 let states={}, ratings={}, notes={};
 loadState();
 function loadState(){
-  try{
-    const p=new URLSearchParams(location.hash.slice(1));
-    if(p.get('s')||p.get('r')){
-      (p.get('s')||'').split('_').filter(Boolean).forEach(x=>{const[id,c]=x.split('.'); if(id&&c) states[id]=c==='b'?'been':'want';});
-      (p.get('r')||'').split('_').filter(Boolean).forEach(x=>{const[id,n]=x.split('.'); if(id&&n){ratings[id]=+n; if(!states[id])states[id]='been';}});
-      save(); return;
-    }
-  }catch(e){}
+  // A shared link belongs to a FRIEND — never overwrite your own passport with it.
+  try{ const p=new URLSearchParams(location.hash.slice(1)); if(p.get('s')||p.get('r')) window.__pendingShare=location.href; }catch(e){}
   try{
     const raw=localStorage.getItem(STORE_KEY);
     if(raw){const d=JSON.parse(raw); states=d.states||{}; ratings=d.ratings||{}; notes=d.notes||{}; return;}
@@ -1157,6 +1151,15 @@ updateProgress();
 if(map){ map.whenReady(()=>{ map.invalidateSize(); filterMapMarkers();
   const fs=FARMS.filter(f=>regionOf(f)===activeRegion); map.fitBounds(L.latLngBounds(fs.map(f=>[f.lat,f.lng])).pad(0.15)); }); }
 supaInit();   // activates real-time friends when SUPA is configured
+
+// Arrived via a friend's share link? Add them as a friend (don't touch your own data)
+(function(){ const u=window.__pendingShare; if(u){ try{
+  const d=parseShare(u);
+  if(Object.keys(d.states).length && d.uid!==uid && !friends.some(fr=>fr.uid&&fr.uid===d.uid)){
+    friends.push({name:d.name||'Friend',avatar:d.avatar||'grape',uid:d.uid||'',states:d.states}); saveFriends(); renderFriends();
+    setTimeout(()=>toast((d.name||'A friend')+' added to your friends!',3400),3300);
+  }
+ }catch(e){} history.replaceState(null,'',location.pathname); } })();
 
 /* Splash: drive in for ~3s, then reveal the app (tap to skip) */
 const splash=document.getElementById('splash');
