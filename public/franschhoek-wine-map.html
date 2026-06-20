@@ -251,6 +251,38 @@
     .car,.bob,.wheel,.rg,.dest{animation-duration:.01s!important;animation-delay:0s!important}
     .splash-word,.splash-tag{animation:none;opacity:1;transform:none}
   }
+
+  /* ---------- Photos ---------- */
+  .photos{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .photo{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .photo img{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block}
+  .delp{position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;border:none;background:rgba(20,8,14,.6);color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .addphoto{width:64px;height:64px;border-radius:10px;border:1.5px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--gold);font:600 9px Inter}
+  .addphoto .ico{width:20px;height:20px}
+  .lb{position:fixed;inset:0;z-index:6000;background:rgba(20,8,14,.92);display:none;align-items:center;justify-content:center;padding:22px}
+  .lb.show{display:flex}
+  .lb img{max-width:100%;max-height:88vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+
+  /* ---------- Friends ---------- */
+  .cardttl{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:21px;color:var(--wine);display:block;margin-bottom:4px}
+  .friend{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 2px 0;margin-top:9px;border-top:1px solid var(--line)}
+  .friend b{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink);font-weight:600;display:block;line-height:1.1}
+  .friend span{font-size:11.5px;color:var(--muted)}
+  .delf{border:none;background:none;color:var(--red);font:600 11.5px Inter;cursor:pointer}
+  .muted2{font-size:12.5px;color:var(--muted);margin:9px 0 0}
+
+  /* ---------- Onboarding tour ---------- */
+  #tour{position:fixed;inset:0;z-index:7000}
+  #tour[hidden]{display:none}
+  .tour-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(20,8,14,.74);transition:.28s var(--ease);pointer-events:none}
+  .tour-tip{position:fixed;left:50%;transform:translateX(-50%);width:min(330px,88vw);background:#fff;border-radius:16px;padding:16px 17px;box-shadow:0 14px 40px rgba(0,0,0,.3);z-index:7001}
+  .tour-tip p{margin:0 0 13px;font-size:14.5px;color:var(--ink);line-height:1.5}
+  .tour-bot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .tour-dots{display:inline-flex;gap:5px}
+  .tour-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:inline-block;transition:.2s}
+  .tour-dots i.on{background:var(--wine);width:18px;border-radius:99px}
+  .tour-tip button{font:600 13.5px Inter;border:none;background:none;color:var(--muted);cursor:pointer;padding:9px 12px;border-radius:10px}
+  .tour-tip button.primary{background:var(--wine);color:#fff;padding:9px 18px}
 </style>
 </head>
 <body data-screen="map">
@@ -357,6 +389,13 @@
         <button class="bigbtn primary" id="shareBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg> Share my list</button>
         <button class="bigbtn" id="randomBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg> Surprise me — where next?</button>
       </div>
+      <div class="youcard">
+        <span class="cardttl">Friends</span>
+        <p class="muted2" style="margin-top:0">Invite friends with a link, then compare who's tasted what.</p>
+        <button class="bigbtn primary" id="inviteBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg> Invite a friend</button>
+        <button class="bigbtn" id="addFriendBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add a friend's list</button>
+        <div id="friendsList"></div>
+      </div>
       <div class="install"><b>Add it to your home screen</b> — tap your browser's Share button, then <b>“Add to Home Screen”</b>. It opens full-screen, just like an app.</div>
       <button class="btn-reset" id="resetBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 2v6h6M3.5 13a9 9 0 1 0 2.6-6.4L3 8"/></svg> Reset everything</button>
       <footer>Hand-mapped guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — check hours &amp; book ahead. Saved privately on this device 🍷</footer>
@@ -373,6 +412,18 @@
   <button class="tab" data-tab="you"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>You</span></button>
 </nav>
 
+<div class="lb" id="lightbox"><img src="" alt="" id="lbImg"/></div>
+
+<div id="tour" hidden>
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-tip" id="tourTip">
+    <p id="tourText"></p>
+    <div class="tour-bot"><span class="tour-dots" id="tourDots"></span>
+      <span><button id="tourSkip">Skip</button><button class="primary" id="tourNext">Next</button></span>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -388,6 +439,9 @@ const IC = {
   empty:'<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
   wine:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 22h8M12 15v7M5 3h14l-1.1 6.2a6 6 0 0 1-11.8 0z"/></svg>',
   route:'<svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 0-8H10a4 4 0 0 1 0-8h6"/></svg>',
+  cam:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 7h3l2-2h8l2 2h3v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  plus:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  share:'<svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
 };
 
 /* ====================== DATA ====================== */
@@ -550,6 +604,11 @@ function loadState(){
 }
 function save(){ try{localStorage.setItem(STORE_KEY,JSON.stringify({states,ratings,notes}));}catch(e){} }
 function stOf(id){ return states[id]||'none'; }
+let photos={}, friends=[];
+try{ photos=JSON.parse(localStorage.getItem('fhk-photos-v1')||'{}'); }catch(e){}
+try{ friends=JSON.parse(localStorage.getItem('fhk-friends-v1')||'[]'); }catch(e){}
+function savePhotos(){ try{ localStorage.setItem('fhk-photos-v1',JSON.stringify(photos)); return true; }catch(e){ return false; } }
+function saveFriends(){ try{ localStorage.setItem('fhk-friends-v1',JSON.stringify(friends)); }catch(e){} }
 function dirUrl(f){ return `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`; }
 
 /* ====================== FILTER ====================== */
@@ -623,6 +682,10 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
     <div class="extra">
       ${starsHtml(f)}
       <textarea class="note" rows="1" placeholder="Leave a note — what did you taste?">${(notes[f.id]||'').replace(/</g,'&lt;')}</textarea>
+      <div class="photos">
+        ${(photos[f.id]||[]).map((src,i)=>`<div class="photo"><img src="${src}" data-i="${i}" alt="your photo"><button class="delp" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}
+        <label class="addphoto">${IC.cam}Post<input type="file" accept="image/*" hidden></label>
+      </div>
     </div>
     <div class="actions">
       <span class="locate">${IC.pin} Map</span>
@@ -634,6 +697,9 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
   el.querySelector('.directions').onclick=(e)=>e.stopPropagation();
   el.querySelector('.stars').querySelectorAll('button').forEach(b=>b.onclick=()=>rate(f.id,+b.dataset.star));
   const ta=el.querySelector('.note'); ta.oninput=()=>{ const v=ta.value.trim(); if(v)notes[f.id]=ta.value; else delete notes[f.id]; save(); };
+  el.querySelectorAll('.photos img').forEach(im=>im.onclick=()=>openLightbox(im.getAttribute('src')));
+  el.querySelectorAll('.delp').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); removePhoto(f.id,+b.dataset.i); });
+  const fi=el.querySelector('.addphoto input'); if(fi) fi.onchange=()=>{ if(fi.files&&fi.files[0]) addPhoto(f.id,fi.files[0]); };
   return el;
 }
 function renderList(container,mode){ container.innerHTML=''; let shown=0;
@@ -769,7 +835,63 @@ grapeBtn.onclick=(e)=>{ e.stopPropagation();
 };
 document.addEventListener('click',(e)=>{ if(!regions.hidden && e.target!==grapeBtn && !regions.contains(e.target) && !grapeBtn.contains(e.target)) regions.hidden=true; });
 
+/* ====================== PHOTOS ====================== */
+function addPhoto(id,file){ const rd=new FileReader();
+  rd.onload=()=>{ const img=new Image(); img.onload=()=>{ const max=1000; let w=img.width,h=img.height; const sc=Math.min(1,max/Math.max(w,h)); w=Math.round(w*sc); h=Math.round(h*sc);
+    const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+    const data=c.toDataURL('image/jpeg',0.72); (photos[id]=photos[id]||[]).push(data);
+    if(!savePhotos()){ photos[id].pop(); if(!photos[id].length)delete photos[id]; toast('Storage full — remove a photo first'); }
+    else { toast('Photo posted'); renderActive(); } };
+    img.onerror=()=>toast('Could not read that image'); img.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+function removePhoto(id,i){ if(photos[id]){ photos[id].splice(i,1); if(!photos[id].length)delete photos[id]; savePhotos(); renderActive(); } }
+function openLightbox(src){ const lb=document.getElementById('lightbox'); document.getElementById('lbImg').src=src; lb.classList.add('show'); }
+document.getElementById('lightbox').onclick=function(){ this.classList.remove('show'); document.getElementById('lbImg').src=''; };
+
+/* ====================== FRIENDS ====================== */
+function parseShare(url){ const out={}; try{ const h=(String(url).split('#')[1]||''); const p=new URLSearchParams(h);
+  (p.get('s')||'').split('_').filter(Boolean).forEach(x=>{const a=x.split('.'); if(a[0]&&a[1]) out[a[0]]=a[1]==='b'?'been':'want';});
+  (p.get('r')||'').split('_').filter(Boolean).forEach(x=>{const a=x.split('.'); if(a[0]&&!out[a[0]]) out[a[0]]='been';});
+ }catch(e){} return out; }
+function renderFriends(){ const el=document.getElementById('friendsList'); if(!el) return;
+  if(!friends.length){ el.innerHTML='<p class="muted2">No friends yet — tap “Invite a friend”, or “Add a friend’s list” using the link they sent you.</p>'; return; }
+  const mine=new Set(FARMS.filter(f=>stOf(f.id)==='been').map(f=>f.id));
+  el.innerHTML=friends.map((fr,i)=>{ const fb=Object.keys(fr.states||{}).filter(id=>fr.states[id]==='been'); const common=fb.filter(id=>mine.has(id)).length;
+    return `<div class="friend"><div><b>${(fr.name||'Friend').replace(/</g,'&lt;')}</b><span>${fb.length} been · ${common} in common with you</span></div><button class="delf" data-i="${i}">remove</button></div>`; }).join('');
+  el.querySelectorAll('.delf').forEach(b=>b.onclick=()=>{ friends.splice(+b.dataset.i,1); saveFriends(); renderFriends(); });
+}
+document.getElementById('inviteBtn').onclick=()=>document.getElementById('shareBtn').click();
+document.getElementById('addFriendBtn').onclick=()=>{ const url=prompt('Paste your friend’s WineAbout share link:'); if(!url) return;
+  const st=parseShare(url); if(!Object.keys(st).length){ toast('That doesn’t look like a WineAbout link'); return; }
+  const name=(prompt('Name this friend:')||'Friend').slice(0,24); friends.push({name,states:st}); saveFriends(); renderFriends(); toast(name+' added'); };
+
+/* ====================== ONBOARDING TOUR ====================== */
+const TOUR=[
+  {text:'Welcome to WineAbout — your Franschhoek tasting passport. Here’s the quick tour.'},
+  {sel:'#search', text:'Search any of the 52 farms up here — it jumps straight to Explore.'},
+  {sel:'#grapeBtn', text:'This grape fills up as you tick farms. Tap it any time to see your progress per region.'},
+  {sel:'[data-tab="explore"]', text:'Explore lists the farms you haven’t visited. On each one, tap “Been here” or “Want to go”.'},
+  {sel:'[data-tab="want"]', text:'Want-to-go orders your picks into a route you can open in Google Maps. Cheers — enjoy!'},
+];
+let tIdx=0;
+function tourStep(i){ tIdx=i; const s=TOUR[i]; const spot=document.getElementById('tourSpot'), tip=document.getElementById('tourTip');
+  document.getElementById('tourText').textContent=s.text;
+  document.getElementById('tourNext').textContent=(i===TOUR.length-1)?'Done':'Next';
+  document.getElementById('tourDots').innerHTML=TOUR.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('');
+  const t=s.sel&&document.querySelector(s.sel);
+  if(t){ const r=t.getBoundingClientRect();
+    spot.style.left=(r.left-6)+'px'; spot.style.top=(r.top-6)+'px'; spot.style.width=(r.width+12)+'px'; spot.style.height=(r.height+12)+'px';
+    if(r.top<window.innerHeight*0.5){ tip.style.top=(r.bottom+16)+'px'; tip.style.bottom='auto'; } else { tip.style.top='auto'; tip.style.bottom=(window.innerHeight-r.top+16)+'px'; }
+  } else { spot.style.left='50%'; spot.style.top='46%'; spot.style.width='0'; spot.style.height='0'; tip.style.top='42%'; tip.style.bottom='auto'; }
+}
+function startTour(){ document.getElementById('tour').hidden=false; tourStep(0); }
+function endTour(){ document.getElementById('tour').hidden=true; try{localStorage.setItem('fhk-onboarded-v1','1');}catch(e){} }
+document.getElementById('tourNext').onclick=()=>{ if(tIdx<TOUR.length-1) tourStep(tIdx+1); else endTour(); };
+document.getElementById('tourSkip').onclick=endTour;
+
 /* ====================== INIT ====================== */
+renderFriends();
 document.getElementById('farmCount').textContent=FARMS.length;
 updateProgress();
 if(map){ map.whenReady(()=>{ map.invalidateSize(); map.fitBounds(L.latLngBounds(FARMS.map(f=>[f.lat,f.lng])).pad(0.12)); }); }
@@ -780,7 +902,11 @@ if(splash){ let done=false;
   const finish=()=>{ if(done)return; done=true;
     splash.classList.add('pouring');                                  // wine pours down the screen
     setTimeout(()=>{ splash.classList.add('gone');                    // then fade into the app
-      setTimeout(()=>{ splash.remove(); if(map) map.invalidateSize(); },600); },850); };
+      setTimeout(()=>{ splash.remove(); if(map) map.invalidateSize();
+        // first-time onboarding (skip for returning users who already have marks)
+        if(!localStorage.getItem('fhk-onboarded-v1') && Object.keys(states).length===0) startTour();
+        else { try{localStorage.setItem('fhk-onboarded-v1','1');}catch(e){} }
+      },600); },850); };
   splash.addEventListener('click',finish);
   setTimeout(finish,2600);                                            // car reaches the farm, then pour
 }
