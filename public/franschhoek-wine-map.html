@@ -1108,7 +1108,7 @@ document.getElementById('arriveFile').onchange=function(){ if(arriveFarm&&this.f
 /* ====================== LIVE BACKEND (Supabase — optional) ======================
    Paste your project URL + anon key below to switch real-time friends ON.
    Until then everything stays local. Run the SQL from the chat in your project. */
-const SUPA={ url:'', anon:'' };
+const SUPA={ url:'https://ckazzwofupljayccwtez.supabase.co', anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrYXp6d29mdXBsamF5Y2N3dGV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjgxMTMsImV4cCI6MjA5NzUwNDExM30.EbONptTUjOMbfVccDvbROJF70huMg2hqjIvIcTIEACQ' };
 let uid=localStorage.getItem('fhk-uid'); if(!uid){ uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); localStorage.setItem('fhk-uid',uid); }
 let sb=null; const friendMarkers={};
 function liveOn(){ return !!(SUPA.url&&SUPA.anon&&sb); }
