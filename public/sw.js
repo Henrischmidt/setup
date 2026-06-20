@@ -14,6 +14,24 @@ self.addEventListener('activate', (e) => {
   })());
 });
 
+/* Web push (phase 2): show a notification even when the app is closed. */
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'WineAbout', {
+    body: d.body || '', icon: '/wine-icon-192.png', badge: '/wine-icon-192.png',
+    data: d.url || '/franschhoek-wine-map.html'
+  }));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil((async () => {
+    const list = await clients.matchAll({ type: 'window' });
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    if (clients.openWindow) return clients.openWindow(e.notification.data || '/franschhoek-wine-map.html');
+  })());
+});
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
