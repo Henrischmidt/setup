@@ -301,8 +301,11 @@
 
   /* ---------- Location ---------- */
   .youdot{width:18px;height:18px;border-radius:50%;background:#2b7fff;border:3px solid #fff;box-shadow:0 0 0 5px rgba(43,127,255,.25),0 2px 6px rgba(0,0,0,.3)}
-  .geobtn.on{background:var(--green);color:#fff;border-color:var(--green)}
-  .geobtn{margin-top:12px}
+  .mapwrap{position:relative}
+  .geofab{position:absolute;right:12px;bottom:12px;z-index:500;width:48px;height:48px;border-radius:50%;border:none;background:#fff;color:var(--wine);box-shadow:0 3px 13px rgba(74,18,38,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s var(--ease)}
+  .geofab .ico{width:23px;height:23px}
+  .geofab.on{background:var(--green);color:#fff}
+  .geofab:active{transform:scale(.9)}
   #arrive{position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:5500;max-width:520px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 34px rgba(74,18,38,.22);padding:13px 14px;animation:rise .25s var(--ease)}
   #arrive[hidden]{display:none}
   .arrive-top{display:flex;align-items:center;gap:9px}
@@ -404,7 +407,10 @@
   <main>
     <!-- MAP -->
     <section class="screen on" id="screen-map">
-      <div id="map"></div>
+      <div class="mapwrap">
+        <div id="map"></div>
+        <button class="geofab" id="geoBtn" title="Show where I am" aria-label="My location"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+      </div>
       <div class="legend">
         <span><i style="background:var(--green)"></i>Been</span>
         <span><i style="background:var(--orange)"></i>Want to go</span>
@@ -412,7 +418,6 @@
         <span>By appointment</span>
         <span>Closed (2026)</span>
       </div>
-      <button class="bigbtn geobtn" id="geoBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> <span class="gtxt">Share my location</span></button>
     </section>
 
     <!-- EXPLORE -->
@@ -1090,7 +1095,7 @@ document.getElementById('tourSkip').onclick=endTour;
 let geoOn=false, geoWatch=null, youMarker=null, arriveFarm=null; const lastPing={};
 function youIcon(){ return L.divIcon({className:'',html:'<div class="youdot"></div>',iconSize:[18,18],iconAnchor:[9,9]}); }
 function haversine(a,b,c,d){ const R=6371000,t=x=>x*Math.PI/180; const dLa=t(c-a),dLo=t(d-b); const u=Math.sin(dLa/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(u)); }
-function setGeoBtn(){ const b=document.getElementById('geoBtn'); if(!b)return; b.classList.toggle('on',geoOn); b.querySelector('.gtxt').textContent=geoOn?'Location on — tracking you':'Share my location'; }
+function setGeoBtn(){ const b=document.getElementById('geoBtn'); if(!b)return; b.classList.toggle('on',geoOn); b.title=geoOn?'Location on':'Show where I am'; const tx=b.querySelector('.gtxt'); if(tx) tx.textContent=geoOn?'Location on — tracking you':'Share my location'; }
 function toggleGeo(){ if(geoOn){ stopGeo(); toast('Location sharing off'); return; }
   if(!navigator.geolocation){ toast('Location not supported here'); return; }
   if('Notification' in window && Notification.permission==='default') try{ Notification.requestPermission(); }catch(e){}
@@ -1160,6 +1165,15 @@ supaInit();   // activates real-time friends when SUPA is configured
     setTimeout(()=>toast((d.name||'A friend')+' added to your friends!',3400),3300);
   }
  }catch(e){} history.replaceState(null,'',location.pathname); } })();
+
+/* Auto-update: register the network-first worker; if an update takes control,
+   refresh once so the installed app never gets stuck on an old version. */
+if('serviceWorker' in navigator){
+  const hadController=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  let _reloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(_reloaded)return; _reloaded=true; if(hadController) location.reload(); });
+}
 
 /* Splash: drive in for ~3s, then reveal the app (tap to skip) */
 const splash=document.getElementById('splash');
