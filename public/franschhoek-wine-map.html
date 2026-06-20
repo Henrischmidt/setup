@@ -332,6 +332,9 @@
   .avapick .tok{cursor:pointer;width:40px;height:40px;border:2px solid transparent;transition:.14s}
   .avapick .tok.sel{border-color:var(--wine);background:#fff}
   .avapick .tok:active{transform:scale(.92)}
+  .friendpin{width:34px;height:34px;border-radius:50%;background:#fff;border:2px solid var(--gold);box-shadow:0 2px 7px rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center}
+  .friendpin .tok{width:28px;height:28px;background:#f1e6d6}
+  .livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:5px;vertical-align:1px}
 </style>
 </head>
 <body data-screen="map">
@@ -856,7 +859,7 @@ function flyTo(f){ if(!map||!markers[f.id]){ toast(f.name); return; }
 function setState(id,act){ states[id]=(stOf(id)===act)?undefined:act; if(!states[id])delete states[id]; save(); afterChange(id); }
 function rate(id,star){ if(ratings[id]===star)delete ratings[id]; else{ratings[id]=star; if(!states[id])states[id]='been';} save(); afterChange(id); }
 function afterChange(id){ const f=FARMS.find(x=>x.id===id); if(markers[id]){ markers[id].setIcon(pinIcon(f)); if(markers[id].isPopupOpen()){ markers[id].setPopupContent(popupHtml(f)); wirePopup(f);} }
-  if(currentScreen==='map') filterMapMarkers(); else renderActive(); updateProgress(); }
+  if(currentScreen==='map') filterMapMarkers(); else renderActive(); updateProgress(); if(liveOn())supaSyncPlayer(); }
 
 /* ====================== SCREENS ====================== */
 let currentScreen='map';
@@ -924,7 +927,7 @@ const QUIPS=[
 function quipFor(f){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return f.name+' — '+q.replace(/{tag}/g,f.tag.toLowerCase()); }
 function shareUrl(){ const s=Object.entries(states).map(([id,v])=>id+'.'+(v==='been'?'b':'w')).join('_'); const r=Object.entries(ratings).map(([id,n])=>id+'.'+n).join('_');
   const parts=[]; if(s)parts.push('s='+s); if(r)parts.push('r='+r);
-  if(profile.name)parts.push('n='+encodeURIComponent(profile.name)); parts.push('a='+(profile.avatar||'grape'));
+  if(profile.name)parts.push('n='+encodeURIComponent(profile.name)); parts.push('a='+(profile.avatar||'grape')); parts.push('u='+uid);
   return location.origin+location.pathname+(parts.length?'#'+parts.join('&'):''); }
 document.getElementById('shareBtn').onclick=async()=>{ const url=shareUrl(); let been=0; FARMS.forEach(f=>{if(stOf(f.id)==='been')been++;}); const text=`I've been to ${been}/${FARMS.length} Franschhoek wine farms 🍷 Here's my map:`;
   try{ if(navigator.share){await navigator.share({title:'My Franschhoek Wine List',text,url});} else {await navigator.clipboard.writeText(url); toast('Share link copied');} }catch(e){ try{await navigator.clipboard.writeText(url); toast('Share link copied');}catch(_){toast('Copy the URL from the address bar');} } };
@@ -1003,7 +1006,7 @@ document.getElementById('lightbox').onclick=function(){ this.classList.remove('s
 function parseShare(url){ const out={states:{},name:'',avatar:'grape'}; try{ const h=(String(url).split('#')[1]||''); const p=new URLSearchParams(h);
   (p.get('s')||'').split('_').filter(Boolean).forEach(x=>{const a=x.split('.'); if(a[0]&&a[1]) out.states[a[0]]=a[1]==='b'?'been':'want';});
   (p.get('r')||'').split('_').filter(Boolean).forEach(x=>{const a=x.split('.'); if(a[0]&&!out.states[a[0]]) out.states[a[0]]='been';});
-  if(p.get('n')) out.name=decodeURIComponent(p.get('n')); if(p.get('a')) out.avatar=p.get('a');
+  if(p.get('n')) out.name=decodeURIComponent(p.get('n')); if(p.get('a')) out.avatar=p.get('a'); if(p.get('u')) out.uid=p.get('u');
  }catch(e){} return out; }
 function renderFriends(){ const el=document.getElementById('friendsList'); if(!el) return;
   const mineBeen=FARMS.filter(f=>stOf(f.id)==='been').length;
@@ -1020,7 +1023,7 @@ function renderFriends(){ const el=document.getElementById('friendsList'); if(!e
 document.getElementById('inviteBtn').onclick=()=>document.getElementById('shareBtn').click();
 document.getElementById('addFriendBtn').onclick=()=>{ const url=prompt('Paste your friend’s WineAbout share link:'); if(!url) return;
   const d=parseShare(url); if(!Object.keys(d.states).length){ toast('That doesn’t look like a WineAbout link'); return; }
-  const name=(d.name||prompt('Name this friend:')||'Friend').slice(0,24); friends.push({name,avatar:d.avatar||'grape',states:d.states}); saveFriends(); renderFriends(); toast(name+' added'); };
+  const name=(d.name||prompt('Name this friend:')||'Friend').slice(0,24); friends.push({name,avatar:d.avatar||'grape',uid:d.uid||'',states:d.states}); saveFriends(); renderFriends(); toast(name+' added'); };
 
 function renderProfile(){
   const big=document.getElementById('avatarBig'); if(!big) return;
@@ -1028,9 +1031,9 @@ function renderProfile(){
   const ni=document.getElementById('nameInput'); if(document.activeElement!==ni) ni.value=profile.name||'';
   const pick=document.getElementById('avaPick');
   pick.innerHTML=Object.keys(AVA).map(id=>`<span class="tok ${id===profile.avatar&&!profile.photo?'sel':''}" data-ava="${id}"><svg viewBox="0 0 24 24">${AVA[id]}</svg></span>`).join('');
-  pick.querySelectorAll('.tok').forEach(t=>t.onclick=()=>{ profile.avatar=t.dataset.ava; profile.photo=''; saveProfile(); renderProfile(); updateProgress(); });
+  pick.querySelectorAll('.tok').forEach(t=>t.onclick=()=>{ profile.avatar=t.dataset.ava; profile.photo=''; saveProfile(); renderProfile(); updateProgress(); if(liveOn())supaSyncPlayer(); });
 }
-document.getElementById('nameInput').oninput=function(){ profile.name=this.value.slice(0,24); saveProfile(); updateProgress(); };
+document.getElementById('nameInput').oninput=function(){ profile.name=this.value.slice(0,24); saveProfile(); updateProgress(); if(liveOn())supaSyncPlayer(); };
 document.getElementById('avatarBig').onclick=()=>document.getElementById('profPhoto').click();
 document.getElementById('profPhoto').onchange=function(){ if(this.files&&this.files[0]) readScaled(this.files[0],256,d=>{ profile.photo=d; saveProfile(); renderProfile(); updateProgress(); }); };
 
@@ -1073,7 +1076,7 @@ function stopGeo(){ if(geoWatch!=null){ navigator.geolocation.clearWatch(geoWatc
 function onPos(p){ const la=p.coords.latitude, lo=p.coords.longitude;
   if(map){ if(!youMarker){ youMarker=L.marker([la,lo],{icon:youIcon(),zIndexOffset:1000,interactive:false}).addTo(map); map.setView([la,lo],Math.max(map.getZoom(),13)); } else youMarker.setLatLng([la,lo]); }
   let near=null,nd=Infinity; FARMS.forEach(f=>{ if(f.status==='closed')return; const d=haversine(la,lo,f.lat,f.lng); if(d<nd){nd=d;near=f;} });
-  if(near && nd<=300){ const now=Date.now(); if(!(lastPing[near.id]&&now-lastPing[near.id]<1800000)){ lastPing[near.id]=now; pingArrival(near,nd); } }
+  if(near && nd<=300){ const now=Date.now(); if(!(lastPing[near.id]&&now-lastPing[near.id]<1800000)){ lastPing[near.id]=now; pingArrival(near,nd); if(liveOn())supaArrive(near); } }
 }
 function pingArrival(f,dist){ arriveFarm=f;
   document.getElementById('arriveName').textContent='You’re at '+f.name;
@@ -1087,6 +1090,34 @@ document.getElementById('arriveBeen').onclick=()=>{ if(arriveFarm){ setState(arr
 document.getElementById('arrivePhoto').onclick=()=>document.getElementById('arriveFile').click();
 document.getElementById('arriveFile').onchange=function(){ if(arriveFarm&&this.files&&this.files[0]){ if(stOf(arriveFarm.id)!=='been')setState(arriveFarm.id,'been'); addPhoto(arriveFarm.id,this.files[0]); } document.getElementById('arrive').hidden=true; };
 
+/* ====================== LIVE BACKEND (Supabase — optional) ======================
+   Paste your project URL + anon key below to switch real-time friends ON.
+   Until then everything stays local. Run the SQL from the chat in your project. */
+const SUPA={ url:'', anon:'' };
+let uid=localStorage.getItem('fhk-uid'); if(!uid){ uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); localStorage.setItem('fhk-uid',uid); }
+let sb=null; const friendMarkers={};
+function liveOn(){ return !!(SUPA.url&&SUPA.anon&&sb); }
+function myBeen(){ return FARMS.filter(f=>stOf(f.id)==='been').length; }
+async function supaInit(){ if(!SUPA.url||!SUPA.anon) return; try{
+  const m=await import('https://esm.sh/@supabase/supabase-js@2');
+  sb=m.createClient(SUPA.url,SUPA.anon,{realtime:{params:{eventsPerSecond:2}}});
+  await supaSyncPlayer(); supaSubscribe();
+}catch(e){ sb=null; console.warn('WineAbout live disabled:',e); } }
+async function supaSyncPlayer(){ if(!sb)return; try{ await sb.from('wa_players').upsert({uid,name:profile.name||'Someone',avatar:profile.avatar||'grape',been:myBeen(),updated_at:new Date().toISOString()}); }catch(e){} }
+async function supaArrive(f){ if(!sb)return; try{ await sb.from('wa_presence').upsert({uid,name:profile.name||'Someone',avatar:profile.avatar||'grape',farm_id:f.id,farm_name:f.name,lat:f.lat,lng:f.lng,at:new Date().toISOString()}); }catch(e){} }
+function friendUids(){ return friends.map(fr=>fr.uid).filter(Boolean); }
+function supaSubscribe(){ if(!sb)return;
+  sb.channel('wa-presence').on('postgres_changes',{event:'*',schema:'public',table:'wa_presence'},(p)=>{ const r=p.new; if(!r||r.uid===uid||!friendUids().includes(r.uid))return; onFriendPresence(r); }).subscribe();
+  sb.channel('wa-players').on('postgres_changes',{event:'*',schema:'public',table:'wa_players'},(p)=>{ const r=p.new; if(!r)return; const fr=friends.find(x=>x.uid===r.uid); if(fr){ fr.liveBeen=r.been; if(r.name)fr.name=r.name; if(r.avatar)fr.avatar=r.avatar; saveFriends(); renderFriends(); } }).subscribe();
+}
+function onFriendPresence(r){
+  if(map){ const ic=L.divIcon({className:'',html:`<div class="friendpin">${tokHtml({name:r.name,avatar:r.avatar})}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
+    if(friendMarkers[r.uid]) friendMarkers[r.uid].setLatLng([r.lat,r.lng]).setIcon(ic).setPopupContent((r.name||'A friend')+' is at '+r.farm_name);
+    else friendMarkers[r.uid]=L.marker([r.lat,r.lng],{icon:ic,zIndexOffset:900}).addTo(map).bindPopup((r.name||'A friend')+' is at '+r.farm_name); }
+  toast((r.name||'A friend')+' just arrived at '+r.farm_name,3500);
+  if('Notification' in window && Notification.permission==='granted'){ try{ new Notification((r.name||'A friend')+' is at '+r.farm_name,{body:'Live on WineAbout now',icon:'/wine-icon-192.png'}); }catch(e){} }
+}
+
 /* ====================== INIT ====================== */
 buildRegionChips(); buildAreaChips(); renderProfile();
 renderFriends();
@@ -1094,6 +1125,7 @@ document.getElementById('farmCount').textContent=FARMS.length;
 updateProgress();
 if(map){ map.whenReady(()=>{ map.invalidateSize(); filterMapMarkers();
   const fs=FARMS.filter(f=>regionOf(f)===activeRegion); map.fitBounds(L.latLngBounds(fs.map(f=>[f.lat,f.lng])).pad(0.15)); }); }
+supaInit();   // activates real-time friends when SUPA is configured
 
 /* Splash: drive in for ~3s, then reveal the app (tap to skip) */
 const splash=document.getElementById('splash');
