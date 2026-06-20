@@ -162,6 +162,13 @@
   .tasteitem:active{transform:scale(.99)}
   .tasteitem.on{background:#f6fbf4;border-color:var(--green);color:var(--green)}
   .tasteitem.on .ico{color:var(--green)}
+  .tasteitem span{flex:1;min-width:0}
+  .rmwine{flex:0 0 auto;font-style:normal;font-size:17px;color:#c9889a;width:22px;text-align:center;line-height:1}
+  .addwine{display:flex;gap:7px;margin-top:4px}
+  .addwine-in{flex:1;font:500 13px Inter;padding:9px 11px;border-radius:10px;border:1.5px dashed var(--line);background:#fff;color:var(--ink);min-width:0}
+  .addwine-in:focus{outline:none;border-color:var(--gold-soft)}
+  .addwine-btn{flex:0 0 auto;width:40px;border:1.5px solid var(--line);background:var(--wine);color:#fff;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .addwine-btn .ico{width:16px;height:16px}
   .note{width:100%;margin-top:5px;font:500 13px Inter;padding:9px 11px;border-radius:10px;border:1.5px solid var(--line);background:#fdfaf5;color:var(--ink);resize:vertical;min-height:38px}
   .note:focus{outline:none;border-color:var(--gold-soft)}
 
@@ -470,6 +477,13 @@
         <button class="bigbtn" id="inviteBtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg> Share my code &amp; link</button>
         <div id="friendsList"></div>
       </div>
+      <div class="youcard">
+        <span class="cardttl">Backup</span>
+        <p class="muted2" style="margin-top:0">Save your whole passport to a file — restore it on a new phone, or just keep it safe.</p>
+        <button class="bigbtn primary" id="backupBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M4 21h16"/></svg> Download my backup</button>
+        <button class="bigbtn" id="restoreBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21V9M8 13l4-4 4 4M4 3h16"/></svg> Restore from a backup</button>
+        <input type="file" accept="application/json,.json" id="restoreFile" hidden>
+      </div>
       <div class="install"><b>Add it to your home screen</b> — tap your browser's Share button, then <b>“Add to Home Screen”</b>. It opens full-screen, just like an app.</div>
       <button class="btn-reset" id="resetBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 2v6h6M3.5 13a9 9 0 1 0 2.6-6.4L3 8"/></svg> Reset everything</button>
       <footer>Hand-mapped guide to the Franschhoek Valley · <span id="farmCount"></span> farms · Coordinates approximate — check hours &amp; book ahead. Saved privately on this device 🍷</footer>
@@ -595,6 +609,22 @@ const FARMS = [
   {id:'warwick', name:'Warwick', cluster:'stellenbosch', lat:-33.8369, lng:18.8511, tag:'The First Lady', fact:'Family estate known for Trilogy and famously family-friendly picnics.', wines:'Trilogy, The First Lady Cabernet, Three Cape Ladies'},
   {id:'simonsig', name:'Simonsig', cluster:'stellenbosch', lat:-33.8536, lng:18.8367, tag:'Kaapse Vonkel MCC', fact:'Made South Africa’s first méthode Cap Classique, Kaapse Vonkel.', wines:'Kaapse Vonkel MCC, Tiara, Redhill Pinotage'},
   {id:'delheim', name:'Delheim', cluster:'stellenbosch', lat:-33.8772, lng:18.8961, tag:'Simonsberg classic', fact:'Much-loved family estate on the Simonsberg with hearty food and reds.', wines:'Grand Reserve, Vera Cruz Shiraz, Pinotage'},
+  {id:'vergelegen', name:'Vergelegen', cluster:'stellenbosch', lat:-34.0772, lng:18.8939, tag:'Grand estate · 1700', fact:'Historic estate with camphor trees, a library cellar and flagship reds.', wines:'Vergelegen GVB, Reserve Sauvignon Blanc, Cabernet'},
+  {id:'lanzerac', name:'Lanzerac', cluster:'stellenbosch', lat:-33.9417, lng:18.8983, tag:'Historic hotel estate', fact:'Manor-house estate where the first commercial Pinotage was bottled.', wines:'Pionier Pinotage, Le Général, Chardonnay'},
+  {id:'neethlingshof', name:'Neethlingshof', cluster:'stellenbosch', lat:-33.9528, lng:18.8089, tag:'Oak-lined avenue', fact:'Grand 1692 estate with a famous oak avenue and noble late-harvest.', wines:'Caracal, Short Story Collection, The Owl Post Pinotage'},
+  {id:'muratie', name:'Muratie', cluster:'stellenbosch', lat:-33.8722, lng:18.9069, tag:'Rustic & historic', fact:'Wonderfully time-worn estate steeped in Cape history.', wines:'Ansela van de Caab, Ronnie Melck Shiraz, Cabernet'},
+  {id:'rustenberg', name:'Rustenberg', cluster:'stellenbosch', lat:-33.9050, lng:18.8850, tag:'Est. 1682', fact:'Beautiful working farm below the Simonsberg with a Cape Dutch werf.', wines:'Peter Barlow, Five Soldiers Chardonnay, John X Merriman'},
+  {id:'glenelly', name:'Glenelly', cluster:'stellenbosch', lat:-33.9000, lng:18.8900, tag:'Bordeaux pedigree', fact:'May-Eliane de Lencquesaing’s estate crafting refined Bordeaux-style reds.', wines:'Lady May, Grand Vin, Glass Collection'},
+  {id:'le-riche', name:'Le Riche', cluster:'stellenbosch', lat:-33.9500, lng:18.8600, tag:'Cabernet specialist', fact:'Family cellar revered for benchmark Stellenbosch Cabernet.', wines:'Cabernet Sauvignon Reserve, Richesse, Chardonnay'},
+  {id:'kleine-zalze', name:'Kleine Zalze', cluster:'stellenbosch', lat:-33.9900, lng:18.8300, tag:'Wine & dining', fact:'Popular R44 estate with the Terroir restaurant and Family Reserve range.', wines:'Family Reserve Chenin, Vineyard Selection, Cabernet'},
+  {id:'ken-forrester', name:'Ken Forrester', cluster:'stellenbosch', lat:-34.0000, lng:18.8200, tag:'Mr Chenin', fact:'The home of South African Chenin Blanc on the Helderberg.', wines:'The FMC, Old Vine Reserve Chenin, Three Halves'},
+  {id:'vergenoegd', name:'Vergenoegd', cluster:'stellenbosch', lat:-34.0180, lng:18.7280, tag:'Runner ducks', fact:'Famous for its parade of Indian Runner ducks and elegant reds.', wines:'Estate Reserve, Runner Duck, Cabernet'},
+  {id:'beyerskloof', name:'Beyerskloof', cluster:'stellenbosch', lat:-33.8400, lng:18.8400, tag:'Pinotage kings', fact:'The definitive Pinotage house at Koelenhof.', wines:'Diesel Pinotage, Synergy, Faith'},
+  {id:'stark-conde', name:'Stark-Condé', cluster:'stellenbosch', lat:-33.9700, lng:18.9333, tag:'Jonkershoek beauty', fact:'Cellar on an island in a dam, deep in the Jonkershoek valley.', wines:'Three Pines Cabernet, Field Blend, Syrah'},
+  {id:'de-toren', name:'De Toren', cluster:'stellenbosch', lat:-33.9200, lng:18.7200, tag:'Bordeaux blends', fact:'Polkadraai estate making precise Bordeaux-style blends.', wines:'Fusion V, Z, Délphine'},
+  {id:'asara', name:'Asara', cluster:'stellenbosch', lat:-33.9600, lng:18.7900, tag:'Wine & hotel', fact:'Hillside estate with a hotel, a lake and a broad range.', wines:'Cape Fusion, Bell Tower, Chardonnay'},
+  {id:'middelvlei', name:'Middelvlei', cluster:'stellenbosch', lat:-33.9100, lng:18.8300, tag:'Braai & Pinotage', fact:'Down-to-earth family farm famous for its braai-and-wine.', wines:'Free Run Pinotage, Momento, Shiraz'},
+  {id:'saxenburg', name:'Saxenburg', cluster:'stellenbosch', lat:-33.9400, lng:18.7200, tag:'Shiraz', fact:'Polkadraai estate known for its Private Collection Shiraz.', wines:'Private Collection Shiraz, Guinea Fowl, Cabernet'},
 
   // ===== PAARL (curated selection) =====
   {id:'fairview', name:'Fairview', cluster:'paarl', lat:-33.7686, lng:18.9258, tag:'Goats & wine', fact:'Famous for its goat tower, cheeses and the Goats do Roam range.', wines:'Goats do Roam, Pinotage, La Capra'},
@@ -738,10 +768,16 @@ try{ photos=JSON.parse(localStorage.getItem('fhk-photos-v1')||'{}'); }catch(e){}
 try{ friends=JSON.parse(localStorage.getItem('fhk-friends-v1')||'[]'); }catch(e){}
 function savePhotos(){ try{ localStorage.setItem('fhk-photos-v1',JSON.stringify(photos)); return true; }catch(e){ return false; } }
 let tasted={}; try{ tasted=JSON.parse(localStorage.getItem('fhk-tasted-v1')||'{}'); }catch(e){}
+let customWines={}; try{ customWines=JSON.parse(localStorage.getItem('fhk-customwines-v1')||'{}'); }catch(e){}
 function saveTasted(){ try{ localStorage.setItem('fhk-tasted-v1',JSON.stringify(tasted)); }catch(e){} }
-function wineList(f){ return winesOf(f).split(',').map(s=>s.trim()).filter(Boolean); }
+function saveCustom(){ try{ localStorage.setItem('fhk-customwines-v1',JSON.stringify(customWines)); }catch(e){} }
+function wineSig(f){ return winesOf(f).split(',').map(s=>s.trim()).filter(Boolean); }
+function wineCustom(f){ return (customWines[f.id]||[]).slice(); }
+function wineAll(f){ return [...wineSig(f),...wineCustom(f)]; }
 function isTasted(id,w){ return !!(tasted[id]&&tasted[id][w]); }
 function toggleTaste(id,w){ tasted[id]=tasted[id]||{}; if(tasted[id][w])delete tasted[id][w]; else { tasted[id][w]=1; buzz(12); } if(!Object.keys(tasted[id]).length)delete tasted[id]; saveTasted(); renderActive(); }
+function addCustomWine(f,name){ name=(name||'').trim().slice(0,60); if(!name) return; if(wineAll(f).some(w=>w.toLowerCase()===name.toLowerCase())) return; customWines[f.id]=customWines[f.id]||[]; customWines[f.id].push(name); saveCustom(); renderActive(); }
+function removeCustomWine(f,name){ const a=customWines[f.id]; if(!a) return; const i=a.indexOf(name); if(i>=0)a.splice(i,1); if(!a.length)delete customWines[f.id]; if(tasted[f.id])delete tasted[f.id][name]; saveCustom(); saveTasted(); renderActive(); }
 function saveFriends(){ try{ localStorage.setItem('fhk-friends-v1',JSON.stringify(friends)); }catch(e){} }
 /* Monopoly-style avatar tokens */
 const AVA={
@@ -839,9 +875,11 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
         ${(photos[f.id]||[]).map((src,i)=>`<div class="photo"><img src="${src}" data-i="${i}" alt="your photo"><button class="delp" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}
         <label class="addphoto">${IC.cam}Post<input type="file" accept="image/*" hidden></label>
       </div>
-      ${(()=>{ const wl=wineList(f); if(!wl.length) return ''; const cnt=wl.filter(w=>isTasted(f.id,w)).length;
-        return `<div class="tastelist"><div class="tastehdr"><span>Tick off what you tasted</span><span>${cnt}/${wl.length}</span></div>`+
-          wl.map(w=>`<button class="tasteitem ${isTasted(f.id,w)?'on':''}" data-w="${w.replace(/"/g,'&quot;')}">${IC.check}<span>${w}</span></button>`).join('')+`</div>`; })()}
+      ${(()=>{ const sig=wineSig(f), cust=wineCustom(f), all=[...sig,...cust]; const cnt=all.filter(w=>isTasted(f.id,w)).length;
+        const row=(w,custom)=>`<button class="tasteitem ${isTasted(f.id,w)?'on':''}" data-w="${w.replace(/"/g,'&quot;')}">${IC.check}<span>${w}</span>${custom?`<i class="rmwine" data-rm="${w.replace(/"/g,'&quot;')}">×</i>`:''}</button>`;
+        return `<div class="tastelist"><div class="tastehdr"><span>Tick off what you tasted</span><span>${cnt}/${all.length||0}</span></div>`+
+          sig.map(w=>row(w,false)).join('')+cust.map(w=>row(w,true)).join('')+
+          `<div class="addwine"><input class="addwine-in" placeholder="Add a wine you tasted…" maxlength="60"><button class="addwine-btn" type="button">${IC.plus}</button></div></div>`; })()}
     </div>
     <div class="actions">
       <span class="locate">${IC.pin} Map</span>
@@ -856,7 +894,9 @@ function farmCard(f, routeNum){ const st=stOf(f.id); const el=document.createEle
   el.querySelectorAll('.photos img').forEach(im=>im.onclick=()=>openLightbox(im.getAttribute('src')));
   el.querySelectorAll('.delp').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); removePhoto(f.id,+b.dataset.i); });
   const fi=el.querySelector('.addphoto input'); if(fi) fi.onchange=()=>{ if(fi.files&&fi.files[0]) addPhoto(f.id,fi.files[0]); };
-  el.querySelectorAll('.tasteitem').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); toggleTaste(f.id,b.dataset.w); });
+  el.querySelectorAll('.tasteitem').forEach(b=>b.onclick=(e)=>{ if(e.target.classList.contains('rmwine')){ e.stopPropagation(); removeCustomWine(f,e.target.dataset.rm); return; } e.stopPropagation(); toggleTaste(f.id,b.dataset.w); });
+  const aw=el.querySelector('.addwine-in'), ab=el.querySelector('.addwine-btn');
+  if(aw&&ab){ const add=()=>addCustomWine(f,aw.value); ab.onclick=(e)=>{e.stopPropagation();add();}; aw.onclick=(e)=>e.stopPropagation(); aw.onkeydown=(e)=>{ if(e.key==='Enter'){e.preventDefault();add();} }; }
   return el;
 }
 function renderList(container,mode){ container.innerHTML=''; let shown=0;
@@ -1058,6 +1098,18 @@ function renderFriends(){ const el=document.getElementById('friendsList'); if(!e
 }
 document.getElementById('inviteBtn').onclick=()=>document.getElementById('shareBtn').click();
 document.getElementById('addCodeBtn').onclick=()=>{ const c=prompt('Enter your friend’s 6-character code:'); if(c) supaAddFriendByCode(c); };
+
+const BK_KEYS=['fhk-wine-passport-v3','fhk-photos-v1','fhk-tasted-v1','fhk-customwines-v1','fhk-profile-v1','fhk-friends-v1','fhk-region','fhk-uid'];
+document.getElementById('backupBtn').onclick=()=>{ const data={_app:'wineabout',_date:new Date().toISOString()}; BK_KEYS.forEach(k=>{const v=localStorage.getItem(k); if(v!=null)data[k]=v;});
+  try{ const blob=new Blob([JSON.stringify(data)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='wineabout-backup.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); toast('Backup downloaded'); }catch(e){ toast('Backup failed'); } };
+document.getElementById('restoreBtn').onclick=()=>document.getElementById('restoreFile').click();
+document.getElementById('restoreFile').onchange=function(){ const file=this.files&&this.files[0]; if(!file)return; const rd=new FileReader();
+  rd.onload=()=>{ try{ const data=JSON.parse(rd.result);
+    if(data._app!=='wineabout' && !confirm('This doesn’t look like a WineAbout backup. Restore anyway?')) return;
+    if(!confirm('Restore this backup? It replaces the passport on THIS device.')) return;
+    BK_KEYS.forEach(k=>{ if(data[k]!=null) localStorage.setItem(k,data[k]); });
+    toast('Restored — reloading…'); setTimeout(()=>location.reload(),800);
+  }catch(e){ toast('Couldn’t read that backup file'); } }; rd.readAsText(file); this.value=''; };
 document.getElementById('codeBox').onclick=()=>{ const t=profile.code||''; if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast('Code '+t+' copied — send it to a friend'),()=>toast('Your code: '+t)); else toast('Your code: '+t); };
 
 function renderProfile(){
@@ -1135,6 +1187,14 @@ document.getElementById('arriveFile').onchange=function(){ if(arriveFarm&&this.f
    Paste your project URL + anon key below to switch real-time friends ON.
    Until then everything stays local. Run the SQL from the chat in your project. */
 const SUPA={ url:'https://ckazzwofupljayccwtez.supabase.co', anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrYXp6d29mdXBsamF5Y2N3dGV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjgxMTMsImV4cCI6MjA5NzUwNDExM30.EbONptTUjOMbfVccDvbROJF70huMg2hqjIvIcTIEACQ' };
+const VAPID_PUBLIC=''; // paste your VAPID public key to enable closed-phone push notifications
+function urlB64ToUint8Array(b){ const pad='='.repeat((4-b.length%4)%4); const base=(b+pad).replace(/-/g,'+').replace(/_/g,'/'); const raw=atob(base); const arr=new Uint8Array(raw.length); for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i); return arr; }
+async function pushSubscribe(){ if(!VAPID_PUBLIC||!sb||!('serviceWorker' in navigator)||!('PushManager' in window)) return;
+  try{ if(Notification.permission!=='granted'){ const p=await Notification.requestPermission(); if(p!=='granted')return; }
+    const reg=await navigator.serviceWorker.ready; let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC)});
+    await sb.from('wa_push').upsert({uid,sub:JSON.stringify(sub),updated_at:new Date().toISOString()});
+  }catch(e){ console.warn('push subscribe failed',e); } }
 let uid=localStorage.getItem('fhk-uid'); if(!uid){ uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); localStorage.setItem('fhk-uid',uid); }
 let sb=null; const friendMarkers={};
 function liveOn(){ return !!(SUPA.url&&SUPA.anon&&sb); }
@@ -1145,6 +1205,7 @@ async function supaInit(){ if(!SUPA.url||!SUPA.anon) return; try{
   await supaSyncPlayer(); supaSubscribe();
   await supaCheckLinks();                          // pull anyone who added me
   for(const fr of friends){ if(fr.uid) supaAddLink(fr.uid); }  // announce me to my friends (makes it mutual)
+  pushSubscribe();                                 // register for closed-phone push (if VAPID set)
 }catch(e){ sb=null; console.warn('WineAbout live disabled:',e); } }
 async function supaSyncPlayer(){ if(!sb)return; try{ await sb.from('wa_players').upsert({uid,code:profile.code||'',name:profile.name||'Someone',avatar:profile.avatar||'grape',been:myBeen(),states:states,updated_at:new Date().toISOString()}); }catch(e){} }
 async function supaAddFriendByCode(code){ code=(code||'').trim().toUpperCase(); if(!code) return;
